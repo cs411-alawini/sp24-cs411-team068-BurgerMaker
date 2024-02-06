@@ -1,4 +1,4 @@
-### Burger Crypto: Project Proposal
+# Burger Crypto: Project Proposal
 
 1. **Project Title**
 
