@@ -1,8 +1,8 @@
-### Virtual Crypto Investment System: Project Proposal
+### Burger Crypto: Project Proposal
 
 1. **Project Title**
 
-   Virtual Crypto Investment System
+   Burger Crypto (A Online virtual crypto investment system)
 
 2. **Project Summary**
    The Virtual Crypto Investment System is a web-based application designed to simulate cryptocurrency investments without financial risk. This project aims to provide users with a platform to practice and understand crypto trading dynamics, market analysis, and portfolio management in a controlled, virtual environment. By utilizing real-time and historical cryptocurrency data, users can experiment with investment strategies, track their virtual portfolio's performance, and gain insights into market trends. This project will challenge our DBMS skills through the efficient handling of large datasets, real-time data processing, and complex query execution to provide a responsive and insightful user experience.
@@ -27,6 +27,10 @@
 
    - **Low-Fidelity UI Mockup**
      A sketch will depict the dashboard with real-time cryptocurrency data, a portfolio management section, trading simulation interface, and personalized recommendation alerts. The UI will be designed for ease of navigation and user engagement.
+
+     ![](asset/demo01.jpg)
+
+     ![](asset/demo02.jpg)
 
    - **Project Work Distribution**
      The project will be divided into tasks such as frontend development, backend/database management, data integration (APIs), AI recommendation engine development, and testing.
