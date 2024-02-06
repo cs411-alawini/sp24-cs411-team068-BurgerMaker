@@ -1,4 +1,4 @@
-# team068-sample
+# team068-BurgerMaker
 
 ## Basic Information
 
@@ -19,7 +19,7 @@
 
 |   Info      |        Description     |
 | ----------- | ---------------------- |
-|  Title      |       ProjectTitle     |
+|  Title      |      Burger Crypto     |
 | System URL  |      link_to_system    |
 | Video Link  |      link_to_video     |
 
