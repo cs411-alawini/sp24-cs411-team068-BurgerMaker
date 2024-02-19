@@ -15,8 +15,12 @@
 
    - The system will feature an AI-driven investment advisor that analyzes users' trading behaviors, market trends, and historical data to suggest personalized investment strategies. 
    - This system will also involve complex data algorithms and real-time data analytics, showcasing our ability to handle and process large datasets dynamically and provide actionable insights to users.
+   - TODO: make charts in UI clear
 
 5. **Usefulness**
+   
+   TODO: improve usefulness for clarity
+
    This application serves as an educational tool for aspiring crypto investors, offering features like real-time trading simulation, portfolio management and strategy recommendations. Unlike existing platforms like [Robinhood](https://robinhood.com/), [CryptoParrot](https://cryptoparrot.com/), our system focuses on education and practice, equipped with a recommendation engine for personalized learning experiences. This uniqueness lies in its educational value, real-time data integration, and personalized user engagement.
 
 6. **Realness and Data Sources**
@@ -24,6 +28,8 @@
 
 7. **Functionality Description**
    Users can create, manage, and track virtual portfolios, simulate trades, view real-time market data, and receive personalized strategy recommendations. The application will support user authentication, portfolio creation/updation/deletion, and complex queries for data analytics, such as calculating the portfolio's performance over time.
+
+   TODO: detail, usecase for every CRUD
 
    - **Low-Fidelity UI Mockup**
      A sketch will depict the dashboard with real-time cryptocurrency data, a portfolio management section, trading simulation interface, and personalized recommendation alerts. The UI will be designed for ease of navigation and user engagement.
@@ -47,3 +53,4 @@
      - ensuring data consistency and security (@bohanw5, @yh63, @yuanzez2, @ziyang8)
 
    
+TODO: Add a para to indicate changes of proposal.
