@@ -18,15 +18,20 @@
    - **AI-Driven Personalized Learning Paths:** While some platforms provide personalized experiences in the form of trading recommendations, Burger Crypto leverages AI to create personalized learning paths (GPT4 with incontext learning). These paths adapt to the user's learning pace, interests, and performance in simulations, offering tailored content, challenges, and quizzes. This ensures that each user's educational journey is optimized for their specific learning goals and styles.
    - **In-Depth Analytics for Learning Reflection:** Beyond providing performance metrics for portfolios, Burger Crypto offers analytical tools that encourage reflection and learning. Users can review their trading decisions, the system's AI-generated suggestions, and actual market outcomes to identify areas for improvement. This reflective process is supported by detailed explanations and resources, bridging the gap between theory and practice.
 
+To address these challenges, the Burger Crypto project employs innovative database design strategies that not only meet the technical requirements but also enhance the user experience:
+
+1. Data Lake Integration: Incorporating a data lake to store vast amounts of raw data in its native format, which can be processed and analyzed as needed. This allows for greater flexibility in data analysis and the ability to leverage big data technologies for advanced analytics.
+
+2. Microservices Architecture for Data Processing: Adopting a microservices architecture (Docker/k8s) for the data processing and analytics components, allowing for more scalable and maintainable systems that can evolve independently and adapt to changing requirements.
 
 5. **Usefulness**
    - **Educational Simulator:** This application serves as an educational tool for aspiring crypto investors, offering features like real-time trading simulation, portfolio management and strategy recommendations. Unlike existing platforms like [Robinhood](https://robinhood.com/), [CryptoParrot](https://cryptoparrot.com/), our system focuses on education and practice, equipped with a recommendation engine for personalized learning experiences. This uniqueness lies in its educational value, real-time data integration, and personalized user engagement.
    
-   - **Personalized Learning Paths:** Leveraging AI, Burger Crypto offers personalized learning experiences by analyzing users' interactions, trading behaviors, and educational progress. Based on this analysis, the platform suggests customized learning paths and content, ensuring that users receive relevant and timely information to address their specific learning needs and gaps. This personalized approach enhances the learning experience, making it more effective and engaging.
+   - **Personalized Learning Paths:** Leveraging AI (LLM with RAG), Burger Crypto offers personalized learning experiences by analyzing users' interactions, trading behaviors, and educational progress. Based on this analysis, the platform suggests customized learning paths and content, ensuring that users receive relevant and timely information to address their specific learning needs and gaps. This personalized approach enhances the learning experience, making it more effective and engaging.
    
    - **Creative Reward Mechanism:** Implement a rewards mechanism within Burger Crypto that tracks user contributions, such as sharing investment strategies, participating in community discussions, and contributing educational content. Users earning "Burger Coins" can then redeem them for real burgers, merging the virtual achievements with tangible rewards. (e.g., users earn 1 Burger Coin for every thumbs-up received on their posts, and they can redeem 1,000 Burger Coins for a free burger at a local restaurant)
 
-6. **Realness and Data So
+6. **Realness and Data Sources**
    We will use real-time and historical cryptocurrency data from APIs such as [CoinGecko](https://www.coingecko.com/en/api), [CoinCap](https://docs.coincap.io/#intro) and [CryptoCompare](https://min-api.cryptocompare.com/). These sources offer JSON data formats, including price, volume, market cap, and historical trade data. By integrating multiple datasets, we ensure the application reflects current market conditions and provides a realistic trading simulation.
 
 7. **Functionality Description**
@@ -64,7 +69,7 @@
 
 In response to the feedback received, we have meticulously updated our Burger Crypto project proposal to enhance its clarity, depth, and specificity. 
 
-We've enriched the creative component by offering a deeper insight into our AI-driven investment advice algorithms and the operational mechanics of the Burger Coin rewards system, including concrete examples of user engagement and reward redemption processes. 
+We've enriched the creative component by offering a deeper insight into our AI-driven investment advice algorithms and the operational mechanics of the Burger Coin rewards system, including concrete examples and reward redemption processes. 
 
 The educational value of our platform has been further highlighted through detailed descriptions of curated educational pathways and interactive learning tools, emphasizing our commitment to providing a comprehensive learning experience. 
 
