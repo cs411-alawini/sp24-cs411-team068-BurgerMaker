@@ -28,4 +28,8 @@ app.set('view engine', '.html');
 const testRouter = require('../controller/test');
 app.use('/test', testRouter);
 
+// Implement API
+const apiRouter = require('../controller/api');
+app.use('/api', testRouter);
+
 module.exports = app;
