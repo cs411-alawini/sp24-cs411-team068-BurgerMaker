@@ -21,7 +21,7 @@ app.use(express.json());
 
 // View
 var exphbs = require('express-handlebars');
-app.engine('.html', exphbs({extname: '.html'}));
+app.engine('.html', exphbs({ extname: '.html' }));
 app.set('view engine', '.html');
 
 // Test API
