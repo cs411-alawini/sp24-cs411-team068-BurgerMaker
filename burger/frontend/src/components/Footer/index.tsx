@@ -8,24 +8,23 @@ const Footer: React.FC = () => {
       style={{
         background: 'none',
       }}
-      copyright="Powered by Ant Desgin"
+      copyright="Powered by Burger Maker Team"
       links={[
         {
-          key: 'Ant Design Pro',
-          title: 'Ant Design Pro',
-          href: 'https://pro.ant.design',
+          key: 'Burger Crypto',
+          title: 'Burger Crypto',
           blankTarget: true,
         },
         {
           key: 'github',
           title: <GithubOutlined />,
-          href: 'https://github.com/ant-design/ant-design-pro',
+          href: 'https://github.com/cs411-alawini/sp24-cs411-team068-BurgerMaker',
           blankTarget: true,
         },
         {
-          key: 'Ant Design',
-          title: 'Ant Design',
-          href: 'https://ant.design',
+          key: 'Burger Maker',
+          title: 'Burger Maker',
+          href: '',
           blankTarget: true,
         },
       ]}

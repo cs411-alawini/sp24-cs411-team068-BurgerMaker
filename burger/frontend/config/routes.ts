@@ -73,6 +73,12 @@ export default [
     ],
   },
   {
+    path: '/crypto-market',
+    icon: 'shop',
+    name: 'Crypto-Market',
+    component: './crypto-market',
+  },
+  {
     path: '/form',
     icon: 'form',
     name: 'form',

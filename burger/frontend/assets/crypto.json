@@ -1,0 +1,44 @@
+[
+    {
+        "id": "BTC",
+        "name": "Bitcoin",
+        "change": 0.0113,
+        "price": 10000,
+        "symbol_url": "https://s3.eu-central-1.amazonaws.com/bbxt-static-icons/type-id/png_512/4caf2b16a0174e26a3482cea69c34cba.png"
+    },
+    {
+        "id": "ETH",
+        "name": "Ethereum",
+        "change": -0.0233,
+        "price": 1000,
+        "symbol_url": "https://s3.eu-central-1.amazonaws.com/bbxt-static-icons/type-id/png_512/604ae4533d9f4ad09a489905cce617c2.png"
+    },
+    {
+        "id": "DOGE",
+        "name": "DogeCoin",
+        "change": -0.134,
+        "price": 10000,
+        "symbol_url": "https://s3.eu-central-1.amazonaws.com/bbxt-static-icons/type-id/png_512/63e240f3047f41c791796784bc719f63.png"
+    },
+    {
+        "id": "XRP",
+        "name": "Ripple",
+        "change": -0.0123,
+        "price": 10000,
+        "symbol_url": "https://s3.eu-central-1.amazonaws.com/bbxt-static-icons/type-id/png_512/ba90bcb0cafb4801ac5dd310f47d6411.png"
+    },
+    {
+        "id": "LTC",
+        "name": "Litecoin",
+        "change": 0.0123,
+        "price": 10000,
+        "symbol_url": "https://s3.eu-central-1.amazonaws.com/bbxt-static-icons/type-id/png_512/a201762f149941ef9b84e0742cd00e48.png"
+    },
+    {
+        "id": "BCH",
+        "name": "Bitcoin Cash",
+        "change": 0.0543,
+        "price": 10000,
+        "symbol_url": "https://s3.eu-central-1.amazonaws.com/bbxt-static-icons/type-id/png_512/a7587cc1505544ecbc577b56f17d38f9.png"
+    }
+]
