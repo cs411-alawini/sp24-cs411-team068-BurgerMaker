@@ -22,18 +22,18 @@ const TopSearch = ({
   const { styles } = useStyles();
   const columns = [
     {
-      title: '排名',
+      title: 'No.',
       dataIndex: 'index',
       key: 'index',
     },
     {
-      title: '搜索关键词',
+      title: 'Portfolios Name',
       dataIndex: 'keyword',
       key: 'keyword',
       render: (text: React.ReactNode) => <a href="/">{text}</a>,
     },
     {
-      title: '用户数',
+      title: 'Total Value',
       dataIndex: 'count',
       key: 'count',
       sorter: (
@@ -46,7 +46,7 @@ const TopSearch = ({
       ) => a.count - b.count,
     },
     {
-      title: '周涨幅',
+      title: 'Weekly Change',
       dataIndex: 'range',
       key: 'range',
       sorter: (
@@ -79,86 +79,12 @@ const TopSearch = ({
     <Card
       loading={loading}
       bordered={false}
-      title="线上热门搜索"
+      title="User's Portfolios"
       extra={dropdownGroup}
       style={{
         height: '100%',
       }}
     >
-      <Row gutter={68}>
-        <Col
-          sm={12}
-          xs={24}
-          style={{
-            marginBottom: 24,
-          }}
-        >
-          <NumberInfo
-            subTitle={
-              <span>
-                搜索用户数
-                <Tooltip title="指标说明">
-                  <InfoCircleOutlined
-                    style={{
-                      marginLeft: 8,
-                    }}
-                  />
-                </Tooltip>
-              </span>
-            }
-            gap={8}
-            total={numeral(12321).format('0,0')}
-            status="up"
-            subTotal={17.1}
-          />
-          <Area
-            xField="x"
-            yField="y"
-            shapeField="smooth"
-            height={45}
-            axis={false}
-            padding={-12}
-            style={{ fill: 'linear-gradient(-90deg, white 0%, #6294FA 100%)', fillOpacity: 0.4 }}
-            data={visitData2}
-          />
-        </Col>
-        <Col
-          sm={12}
-          xs={24}
-          style={{
-            marginBottom: 24,
-          }}
-        >
-          <NumberInfo
-            subTitle={
-              <span>
-                人均搜索次数
-                <Tooltip title="指标说明">
-                  <InfoCircleOutlined
-                    style={{
-                      marginLeft: 8,
-                    }}
-                  />
-                </Tooltip>
-              </span>
-            }
-            total={2.7}
-            status="down"
-            subTotal={26.2}
-            gap={8}
-          />
-          <Area
-            xField="x"
-            yField="y"
-            shapeField="smooth"
-            height={45}
-            padding={-12}
-            style={{ fill: 'linear-gradient(-90deg, white 0%, #6294FA 100%)', fillOpacity: 0.4 }}
-            data={visitData2}
-            axis={false}
-          />
-        </Col>
-      </Row>
       <Table<any>
         rowKey={(record) => record.index}
         size="small"
@@ -168,7 +94,7 @@ const TopSearch = ({
           style: {
             marginBottom: 0,
           },
-          pageSize: 5,
+          pageSize: 7,
         }}
       />
     </Card>

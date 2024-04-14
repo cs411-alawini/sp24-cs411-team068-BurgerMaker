@@ -14,10 +14,14 @@ import ProportionSales from './components/ProportionSales';
 import type { TimeType } from './components/SalesCard';
 import SalesCard from './components/SalesCard';
 import TopSearch from './components/TopSearch';
-import type { AnalysisData } from './data.d';
-import { fakeChartData } from './service';
+import PortfolioList from './components/PortfolioList';
+import { DataItem, type AnalysisData } from './data.d';
+import { fakeChartData, fetchPortfolios } from './service';
 import useStyles from './style.style';
 import { getTimeDistance } from './utils/utils';
+
+
+
 type RangePickerValue = RangePickerProps<dayjs.Dayjs>['value'];
 type AnalysisProps = {
   dashboardAndanalysis: AnalysisData;
@@ -32,6 +36,13 @@ const Analysis: FC<AnalysisProps> = () => {
     getTimeDistance('year'),
   );
   const { loading, data } = useRequest(fakeChartData);
+  // console.log(data?.searchData);
+  // // change searchData keyword
+  // if (data?.searchData) {
+  //   data.searchData.forEach((item: DataItem) => {
+  //     item.keyword = `Portfolio-${item.index}`;
+  //   });
+  // }
   const selectDate = (type: TimeType) => {
     setRangePickerValue(getTimeDistance(type));
   };
@@ -120,12 +131,13 @@ const Analysis: FC<AnalysisProps> = () => {
         >
           <Col xl={12} lg={24} md={24} sm={24} xs={24}>
             <Suspense fallback={null}>
-              <TopSearch
+              {/* <TopSearch
                 loading={loading}
                 visitData2={data?.visitData2 || []}
                 searchData={data?.searchData || []}
                 dropdownGroup={dropdownGroup}
-              />
+              /> */}
+              <PortfolioList />
             </Suspense>
           </Col>
           <Col xl={12} lg={24} md={24} sm={24} xs={24}>
@@ -140,8 +152,8 @@ const Analysis: FC<AnalysisProps> = () => {
             </Suspense>
           </Col>
         </Row>
-
-        <Suspense fallback={null}>
+        <PortfolioList />
+        {/* <Suspense fallback={null}>
           <OfflineData
             activeKey={activeKey}
             loading={loading}
@@ -149,7 +161,7 @@ const Analysis: FC<AnalysisProps> = () => {
             offlineChartData={data?.offlineChartData || []}
             handleTabChange={handleTabChange}
           />
-        </Suspense>
+        </Suspense> */}
       </>
     </GridContent>
   );
