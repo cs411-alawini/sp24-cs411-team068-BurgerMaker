@@ -133,6 +133,12 @@ export default [
             path: '/list/search/applications',
             component: './list/search/applications',
           },
+          {
+            name: 'publish',
+            icon: 'smile',
+            path: '/list/search/publish',
+            component: './list/search/publish',
+          },
         ],
       },
       {
