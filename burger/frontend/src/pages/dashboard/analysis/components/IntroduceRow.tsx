@@ -1,6 +1,7 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Area, Column } from '@ant-design/plots';
 import { Col, Progress, Row, Tooltip } from 'antd';
+import { Suspense, useState, useEffect } from 'react';
 import numeral from 'numeral';
 import type { DataItem } from '../data.d';
 import useStyles from '../style.style';
@@ -17,22 +18,65 @@ const topColResponsiveProps = {
     marginBottom: 24,
   },
 };
-const IntroduceRow = ({ loading, visitData }: { loading: boolean; visitData: DataItem[] }) => {
+const IntroduceRow = () => {
   const { styles } = useStyles();
+
+  const [marketValue, setMarketValue] = useState(0);
+  const [postLikeSum, setPostLikeSum] = useState(0);
+  const [loading, setLoading] = useState({ marketValue: true, postLikeSum: true });
+
+  const fetchMarketValue = async () => {
+    setLoading(prev => ({ ...prev, marketValue: true }));
+    try {
+      const response = await fetch('http://localhost:5001/api/trade/value');
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const jsonData = await response.json();
+      console.log(jsonData);
+      setMarketValue(jsonData.value);
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+    } finally {
+      setLoading(prev => ({ ...prev, marketValue: false }));
+    }
+  };
+
+  const fetchLikeSum = async () => {
+    setLoading(prev => ({ ...prev, postLikeSum: true }));
+    try {
+      const response = await fetch('http://localhost:5001/api/post/like');
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const jsonData = await response.json();
+      console.log(jsonData);
+      setPostLikeSum(jsonData.value);
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+    } finally {
+      setLoading(prev => ({ ...prev, postLikeSum: false }));
+    }
+  };
+  useEffect(() => {
+    fetchMarketValue();
+    fetchLikeSum();
+  },[]);
+
   return (
     <Row gutter={24}>
       <Col {...topColResponsiveProps}>
         <ChartCard
           bordered={false}
-          title="总销售额"
+          title="Current Market Value"
           action={
-            <Tooltip title="指标说明">
+            <Tooltip title="Total amount of money in the account">
               <InfoCircleOutlined />
             </Tooltip>
           }
-          loading={loading}
-          total={() => <Yuan>126560</Yuan>}
-          footer={<Field label="日销售额" value={`￥${numeral(12423).format('0,0')}`} />}
+          loading={loading.marketValue}
+          total={() => <Yuan>{marketValue}</Yuan>}
+          footer={<Field label="Profit today" value={`$${numeral(1001).format('0,0')}`} />}
           contentHeight={46}
         >
           <Trend
@@ -41,28 +85,28 @@ const IntroduceRow = ({ loading, visitData }: { loading: boolean; visitData: Dat
               marginRight: 16,
             }}
           >
-            周同比
-            <span className={styles.trendText}>12%</span>
+            Weekly
+            <span className={styles.trendText}>1001%</span>
           </Trend>
           <Trend flag="down">
-            日同比
-            <span className={styles.trendText}>11%</span>
+            Daily
+            <span className={styles.trendText}>1001%</span>
           </Trend>
         </ChartCard>
       </Col>
 
-      <Col {...topColResponsiveProps}>
+      {/* <Col {...topColResponsiveProps}>
         <ChartCard
           bordered={false}
           loading={loading}
-          title="访问量"
+          title="Monthly value curve"
           action={
-            <Tooltip title="指标说明">
+            <Tooltip title="Changes of market value this month">
               <InfoCircleOutlined />
             </Tooltip>
           }
-          total={numeral(8846).format('0,0')}
-          footer={<Field label="日访问量" value={numeral(1234).format('0,0')} />}
+          total={<Field label="Peak" value={numeral(1002).format('0,0')} />}
+          footer={<Field label="Monthly Profit" value={numeral(1001).format('0,0')} />}
           contentHeight={46}
         >
           <Area
@@ -80,19 +124,19 @@ const IntroduceRow = ({ loading, visitData }: { loading: boolean; visitData: Dat
             data={visitData}
           />
         </ChartCard>
-      </Col>
+      </Col> */}
       <Col {...topColResponsiveProps}>
         <ChartCard
           bordered={false}
-          loading={loading}
-          title="支付笔数"
+          loading={loading.postLikeSum}
+          title="Post Likes"
           action={
-            <Tooltip title="指标说明">
+            <Tooltip title="Num of likes received in all your posts">
               <InfoCircleOutlined />
             </Tooltip>
           }
-          total={numeral(6560).format('0,0')}
-          footer={<Field label="转化率" value="60%" />}
+          total={numeral(postLikeSum).format('0,0')}
+          footer={<Field label="Likes per posts" value="5" />}
           contentHeight={46}
         >
           <Column
@@ -101,22 +145,22 @@ const IntroduceRow = ({ loading, visitData }: { loading: boolean; visitData: Dat
             padding={-20}
             axis={false}
             height={46}
-            data={visitData}
+            // data={visitData}
             scale={{ x: { paddingInner: 0.4 } }}
           />
         </ChartCard>
       </Col>
-      <Col {...topColResponsiveProps}>
+      {/* <Col {...topColResponsiveProps}>
         <ChartCard
           loading={loading}
           bordered={false}
-          title="运营活动效果"
+          title="High Risk Ratio"
           action={
-            <Tooltip title="指标说明">
+            <Tooltip title="Value of high-risk asset / Total value">
               <InfoCircleOutlined />
             </Tooltip>
           }
-          total="78%"
+          total="10.03%"
           footer={
             <div
               style={{
@@ -130,20 +174,20 @@ const IntroduceRow = ({ loading, visitData }: { loading: boolean; visitData: Dat
                   marginRight: 16,
                 }}
               >
-                周同比
+                Weekly
                 <span className={styles.trendText}>12%</span>
               </Trend>
               <Trend flag="down">
-                日同比
+                Daily
                 <span className={styles.trendText}>11%</span>
               </Trend>
             </div>
           }
           contentHeight={46}
         >
-          <Progress percent={78} strokeColor={{ from: '#108ee9', to: '#87d068' }} status="active" />
+          <Progress percent={10.03} strokeColor={{ from: '#108ee9', to: '#87d068' }} status="active" />
         </ChartCard>
-      </Col>
+      </Col> */}
     </Row>
   );
 };

@@ -6,8 +6,9 @@ import type { RangePickerProps } from 'antd/es/date-picker/generatePicker';
 import type { RadioChangeEvent } from 'antd/es/radio';
 import type dayjs from 'dayjs';
 import type { FC } from 'react';
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import IntroduceRow from './components/IntroduceRow';
+import TradeHistoryTable from './components/TradeHistoryTable';
 import OfflineData from './components/OfflineData';
 import PageLoading from './components/PageLoading';
 import ProportionSales from './components/ProportionSales';
@@ -31,7 +32,13 @@ const Analysis: FC<AnalysisProps> = () => {
   const [rangePickerValue, setRangePickerValue] = useState<RangePickerValue>(
     getTimeDistance('year'),
   );
-  const { loading, data } = useRequest(fakeChartData);
+  let loading = false;
+  const [data, setData] = useState<object|undefined>({});
+  // apis
+  // const { loading, data } = useRequest(fakeChartData);
+
+  
+  // apis end
   const selectDate = (type: TimeType) => {
     setRangePickerValue(getTimeDistance(type));
   };
@@ -58,13 +65,13 @@ const Analysis: FC<AnalysisProps> = () => {
     return '';
   };
 
-  let salesPieData;
+  // let salesPieData;
 
-  if (salesType === 'all') {
-    salesPieData = data?.salesTypeData;
-  } else {
-    salesPieData = salesType === 'online' ? data?.salesTypeDataOnline : data?.salesTypeDataOffline;
-  }
+  // if (salesType === 'all') {
+  //   salesPieData = data?.salesTypeData;
+  // } else {
+  //   salesPieData = salesType === 'online' ? data?.salesTypeDataOnline : data?.salesTypeDataOffline;
+  // }
 
   const dropdownGroup = (
     <span className={styles.iconGroup}>
@@ -93,15 +100,19 @@ const Analysis: FC<AnalysisProps> = () => {
   const handleTabChange = (key: string) => {
     setCurrentTabKey(key);
   };
-  const activeKey = currentTabKey || (data?.offlineData[0] && data?.offlineData[0].name) || '';
+  // const activeKey = currentTabKey || (data?.offlineData[0] && data?.offlineData[0].name) || '';
   return (
     <GridContent>
       <>
         <Suspense fallback={<PageLoading />}>
-          <IntroduceRow loading={loading} visitData={data?.visitData || []} />
+          <IntroduceRow />
         </Suspense>
 
-        <Suspense fallback={null}>
+        <Suspense fallback={<PageLoading />}>
+          <TradeHistoryTable />
+        </Suspense>
+        
+        {/* <Suspense fallback={null}>
           <SalesCard
             rangePickerValue={rangePickerValue}
             salesData={data?.salesData || []}
@@ -139,9 +150,9 @@ const Analysis: FC<AnalysisProps> = () => {
               />
             </Suspense>
           </Col>
-        </Row>
+        </Row> */}
 
-        <Suspense fallback={null}>
+        {/* <Suspense fallback={null}>
           <OfflineData
             activeKey={activeKey}
             loading={loading}
@@ -149,7 +160,7 @@ const Analysis: FC<AnalysisProps> = () => {
             offlineChartData={data?.offlineChartData || []}
             handleTabChange={handleTabChange}
           />
-        </Suspense>
+        </Suspense> */}
       </>
     </GridContent>
   );

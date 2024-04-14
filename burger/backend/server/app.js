@@ -30,6 +30,6 @@ app.use('/test', testRouter);
 
 // Implement API
 const apiRouter = require('../controller/api');
-app.use('/api', testRouter);
+app.use('/api', apiRouter);
 
 module.exports = app;
