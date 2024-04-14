@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LikeOutlined, LoadingOutlined, MessageOutlined, StarOutlined } from '@ant-design/icons';
 import { useRequest } from '@umijs/max';
 import { Button, Card, Form, Input, List } from 'antd';
@@ -17,17 +17,41 @@ const Articles: FC = () => {
   const [form] = Form.useForm();
   const [searchText, setSearchText] = useState('');
   const [expandedId, setExpandedId] = useState(null);
+  const [post, setPosts] = useState([])
+  const [loading, setLoading] = useState(false);
 
   const { styles } = useStyles();
 
-  const { data, loading, refresh } = useRequest(
-    () => queryFakeList({ count: pageSize, query: searchText }),
-    {
-      refreshDeps: [searchText], // Refresh data when searchText changes
-    }
-  );
+  // const { data, loading, refresh } = useRequest(
+  //   () => queryFakeList({ count: pageSize, query: searchText }),
+  //   {
+  //     refreshDeps: [searchText], // Refresh data when searchText changes
+  //   }
+  // );
 
-  const list = data?.list || [];
+  const getPosts = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        'http://localhost:29978/api/list_real2',
+      );
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const posts = await response.json();
+      console.log(posts)
+      setPosts(posts);
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+    }
+    setLoading(false);
+  };
+
+
+  useEffect(() => {
+    getPosts();
+  }, [])
+
 
   const IconText = ({ icon, text }) => (
     <span>
@@ -68,7 +92,7 @@ const Articles: FC = () => {
           loading={loading}
           rowKey="id"
           itemLayout="vertical"
-          dataSource={list}
+          dataSource={post}
           renderItem={(item) => (
             <List.Item
               key={item.id}
