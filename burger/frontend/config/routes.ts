@@ -35,6 +35,25 @@ export default [
     ],
   },
   {
+    path: '/list',
+    icon: 'table',
+    name: 'Community',
+    routes: [
+      {
+        name: 'Posts',
+        icon: 'smile',
+        path: '/list/search/articles',
+        component: './list/search/articles',
+      },
+      {
+        name: 'Publish',
+        icon: 'smile',
+        path: '/list/search/publish',
+        component: './list/search/publish',
+      },
+    ],
+  },
+  {
     path: '/',
     redirect: '/dashboard/analysis',
   },
