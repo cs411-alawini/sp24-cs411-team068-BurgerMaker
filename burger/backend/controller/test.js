@@ -44,53 +44,72 @@ router.get('/user', async (req, res) => {
     });
 });
 
+// CREATE TABLE IF NOT EXISTS User(
+//     id VARCHAR(64) PRIMARY KEY,
+//     name VARCHAR(256),
+//     password VARCHAR(256),
+//     email VARCHAR(256),
+//     join_time DATETIME,
+//     balance DECIMAL(20,8),
+//     burger_coin INT    
+// );
+
+// CREATE TABLE IF NOT EXISTS Post(
+//     id VARCHAR(64) PRIMARY KEY,
+//     title VARCHAR(256),
+//     thumbs_up_num INT,
+//     description TEXT,
+//     content TEXT,
+//     user_id VARCHAR(64) REFERENCES User(id) on delete set NULL on update cascade,
+//     create_time DATETIME,
+//     update_time DATETIME
+// );
+
 router.get('/list_real2', async (req, res) => {
-    const count = parseInt(req.query.count) || 10; // Default to 10 if no count parameter is provided
+    // Parse the count from query, default to 10 if not provided
+    const count = parseInt(req.query.count) || 10;
 
     db.getConnection((err, connection) => {
         if (err) {
-            res.status(500).json({ message: 'Internal server error' });
-            return;
+            return res.status(500).json({ message: 'Internal server error getting database connection' });
+        } else {
+            // SQL query to fetch posts and user details
+            const query = `
+                SELECT p.id, p.title, p.description, p.create_time, p.update_time, p.thumbs_up_num, p.content,
+                       u.name AS owner, u.id AS user_id
+                FROM Post p
+                LEFT JOIN User u ON p.user_id = u.id
+                ORDER BY p.create_time DESC
+                LIMIT ?
+            `;
+
+            connection.query(query, [count], (err, results) => {
+                connection.release(); // Release the connection back to the pool
+
+                if (err) {
+                    return res.status(500).json({ message: 'Error querying database' });
+                } else {
+                    // Map the results to the desired format
+                    const listData = results.map(post => ({
+                        id: post.id,
+                        owner: post.owner || 'Unknown User',
+                        title: post.title,
+                        avatar: post.avatar || 'https://example.com/default_avatar.png',
+                        cover: 'https://example.com/default_cover.png', // Assuming a default cover
+                        updatedAt: post.update_time,
+                        createdAt: post.create_time,
+                        description: post.description,
+                        star: post.thumbs_up_num,
+                        content: post.content
+                    }));
+
+                    res.json(listData);
+                }
+            });
         }
-        connection.query(`SELECT * FROM Post ORDER BY create_time DESC LIMIT ?`, [count], (err, rows) => {
-            connection.release(); // Make sure to release the connection back to the pool
-            if (err) {
-                res.status(500).json({ message: 'Error querying the Post table' });
-            } else {
-                const listData = rows.map((row, index) => {
-                    return {
-                        id: row.id,
-                        owner: `User ${row.user_id}`, // assuming the owner field corresponds to user_id
-                        title: row.title,
-                        avatar: 'https://gw.alipayobjects.com/zos/rmsportal/eeHMaZBwmTvLdIwMfBpg.png', // Assuming a default avatar
-                        cover: 'https://gw.alipayobjects.com/zos/rmsportal/uMfMFlvUuceEyPpotzlq.png', // Assuming a default cover
-                        status: ['active', 'exception', 'normal'][index % 3], // Cycling status for demonstration
-                        percent: Math.ceil(Math.random() * 50) + 50,
-                        logo: 'https://gw.alipayobjects.com/zos/rmsportal/eeHMaZBwmTvLdIwMfBpg.png', // Assuming a default logo
-                        href: 'https://ant.design',
-                        updatedAt: row.update_time,
-                        createdAt: row.create_time,
-                        subDescription: row.description,
-                        description: row.content,
-                        activeUser: Math.ceil(Math.random() * 100000) + 100000, // Simulated data
-                        newUser: Math.ceil(Math.random() * 1000) + 1000, // Simulated data
-                        star: Math.ceil(Math.random() * 100) + 100, // Simulated data
-                        like: Math.ceil(Math.random() * 100) + 100, // Simulated data
-                        message: Math.ceil(Math.random() * 10) + 10, // Simulated data
-                        content: row.content,
-                        members: [
-                            // Example member data, assuming static for demonstration
-                            { avatar: 'https://gw.alipayobjects.com/zos/rmsportal/ZiESqWwCXBRQoaPONSJe.png', name: '曲丽丽', id: 'member1' },
-                            { avatar: 'https://gw.alipayobjects.com/zos/rmsportal/tBOxZPlITHqwlGjsJWaF.png', name: '王昭君', id: 'member2' },
-                            { avatar: 'https://gw.alipayobjects.com/zos/rmsportal/sBxjgqiuHMGRkIjqlQCd.png', name: '董娜娜', id: 'member3' }
-                        ]
-                    };
-                });
-                res.json(listData);
-            }
-        });
     });
 });
+
 
 
 const holdings = [
