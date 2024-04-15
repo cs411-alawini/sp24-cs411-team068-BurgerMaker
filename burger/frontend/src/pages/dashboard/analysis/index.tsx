@@ -68,27 +68,27 @@ const Analysis: FC<AnalysisProps> = () => {
   //   salesPieData = salesType === 'online' ? data?.salesTypeDataOnline : data?.salesTypeDataOffline;
   // }
 
-  const dropdownGroup = (
-    <span className={styles.iconGroup}>
-      <Dropdown
-        menu={{
-          items: [
-            {
-              key: '1',
-              label: '操作一',
-            },
-            {
-              key: '2',
-              label: '操作二',
-            },
-          ],
-        }}
-        placement="bottomRight"
-      >
-        <EllipsisOutlined />
-      </Dropdown>
-    </span>
-  );
+  // const dropdownGroup = (
+  //   <span className={styles.iconGroup}>
+  //     <Dropdown
+  //       menu={{
+  //         items: [
+  //           {
+  //             key: '1',
+  //             label: '操作一',
+  //           },
+  //           {
+  //             key: '2',
+  //             label: '操作二',
+  //           },
+  //         ],
+  //       }}
+  //       placement="bottomRight"
+  //     >
+  //       <EllipsisOutlined />
+  //     </Dropdown>
+  //   </span>
+  // );
   const handleChangeSalesType = (e: RadioChangeEvent) => {
     setSalesType(e.target.value);
   };
@@ -101,21 +101,6 @@ const Analysis: FC<AnalysisProps> = () => {
       <>
         <Suspense fallback={<PageLoading />}>
           <IntroduceRow />
-        </Suspense>
-
-        <Suspense fallback={<PageLoading />}>
-          <TradeHistoryTable />
-        </Suspense>
-        
-        {/* <Suspense fallback={null}>
-          <SalesCard
-            rangePickerValue={rangePickerValue}
-            salesData={data?.salesData || []}
-            isActive={isActive}
-            handleRangePickerChange={handleRangePickerChange}
-            loading={loading}
-            selectDate={selectDate}
-          />
         </Suspense>
 
         <Row
@@ -134,7 +119,23 @@ const Analysis: FC<AnalysisProps> = () => {
               <PortfolioHoldingsPie />
             </Suspense>
           </Col>
-        </Row> */}
+        </Row>
+        
+        <Suspense fallback={<PageLoading />}>
+          <TradeHistoryTable />
+        </Suspense>
+        
+        {/* <Suspense fallback={null}>
+          <SalesCard
+            rangePickerValue={rangePickerValue}
+            salesData={data?.salesData || []}
+            isActive={isActive}
+            handleRangePickerChange={handleRangePickerChange}
+            loading={loading}
+            selectDate={selectDate}
+          />
+        </Suspense> */}
+
 
         {/* <Suspense fallback={null}>
           <OfflineData

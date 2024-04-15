@@ -55,21 +55,21 @@ const Settings: React.FC = () => {
   const getMenu = () => {
     return Object.keys(menuMap).map((item) => ({ key: item, label: menuMap[item] }));
   };
-  const renderChildren = () => {
-    const { selectKey } = initConfig;
-    switch (selectKey) {
-      case 'base':
-        return <BaseView />;
-      case 'security':
-        return <SecurityView />;
-      case 'binding':
-        return <BindingView />;
-      case 'notification':
-        return <NotificationView />;
-      default:
-        return null;
-    }
-  };
+  // const renderChildren = () => {
+  //   const { selectKey } = initConfig;
+  //   switch (selectKey) {
+  //     case 'base':
+  //       return ;
+  //     case 'security':
+  //       return <SecurityView />;
+  //     case 'binding':
+  //       return <BindingView />;
+  //     case 'notification':
+  //       return <NotificationView />;
+  //     default:
+  //       return null;
+  //   }
+  // };
   return (
     <GridContent>
       <div
@@ -80,7 +80,7 @@ const Settings: React.FC = () => {
           }
         }}
       >
-        <div className={styles.leftMenu}>
+        {/* <div className={styles.leftMenu}>
           <Menu
             mode={initConfig.mode}
             selectedKeys={[initConfig.selectKey]}
@@ -92,10 +92,10 @@ const Settings: React.FC = () => {
             }}
             items={getMenu()}
           />
-        </div>
+        </div> */}
         <div className={styles.right}>
           <div className={styles.title}>{menuMap[initConfig.selectKey]}</div>
-          {renderChildren()}
+          <BaseView />
         </div>
       </div>
     </GridContent>
