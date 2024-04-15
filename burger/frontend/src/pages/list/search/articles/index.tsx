@@ -33,7 +33,7 @@ const Articles: FC = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        'http://localhost:5001/test/list_real2',
+        'http://localhost:29979/test/list_real2',
       );
       if (!response.ok) {
         throw new Error('Network response was not ok');

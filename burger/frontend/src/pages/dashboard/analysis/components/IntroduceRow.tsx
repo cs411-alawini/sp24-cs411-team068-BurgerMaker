@@ -28,7 +28,7 @@ const IntroduceRow = () => {
   const fetchMarketValue = async () => {
     setLoading(prev => ({ ...prev, marketValue: true }));
     try {
-      const response = await fetch('http://localhost:5001/api/trade/value');
+      const response = await fetch('http://localhost:29979/api/trade/value');
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
@@ -45,7 +45,7 @@ const IntroduceRow = () => {
   const fetchLikeSum = async () => {
     setLoading(prev => ({ ...prev, postLikeSum: true }));
     try {
-      const response = await fetch('http://localhost:5001/api/post/like');
+      const response = await fetch('http://localhost:29979/api/post/like');
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
