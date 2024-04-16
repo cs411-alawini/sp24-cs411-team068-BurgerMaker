@@ -1,8 +1,5 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const jwt = require('jsonwebtoken');
 const db = require('../db/connection');
-const crypto = require('crypto');
 
 const router = express.Router();
 
@@ -110,16 +107,12 @@ router.get('/user', async (req, res) => {
                         return res.status(500).json({message: 'Error querying database'});
                     } else {
                         // Map the results to the desired format
-                        const listData = results.map(user => ({
-                            id: user.id,
-                            name: user.name || 'Unknown User',
-                            email: user.email,
-                            join_time: user.join_time,
-                            balance: user.balance,
-                            burger_coin: user.burger_coin
-                        }));
+                        if (results.length !== 1) {
+                            return res.status(401).json({message: 'User not found!'});
+                        } else {
+                            res.json(results[0]);
+                        }
 
-                        res.json(listData);
                     }
                 })
             }
