@@ -1,7 +1,7 @@
 import { Pie } from '@ant-design/plots';
-import { Card, Typography } from 'antd';
+import { Card } from 'antd';
 import { useEffect, useState } from 'react';
-const { Text } = Typography;
+// const { Text } = Typography;
 
 const PortfolioHoldingsPie = ({ userId }) => {
   const [holdingsData, setHoldingsData] = useState([]);

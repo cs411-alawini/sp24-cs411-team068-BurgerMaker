@@ -21,7 +21,7 @@ function PortfolioList() {
   const fetchPortfolios = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5001/test/${userId}/portfolio`,
+        `http://localhost:29979/test/${userId}/portfolio`,
       );
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -35,7 +35,7 @@ function PortfolioList() {
 
   const fetchPortfoliosStatusAndCost = async () => {
     try {
-      const response = await fetch(`http://localhost:5001/test/${userId}/portfolio-status`);
+      const response = await fetch(`http://localhost:29979/test/${userId}/portfolio-status`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
