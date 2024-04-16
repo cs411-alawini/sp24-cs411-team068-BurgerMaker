@@ -11,7 +11,7 @@ import {
 import {FormattedMessage, Helmet, SelectLang, useIntl, useModel} from '@umijs/max';
 import {Alert, message} from 'antd';
 import {createStyles} from 'antd-style';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {flushSync} from 'react-dom';
 import Settings from '../../../../config/defaultSettings';
 
@@ -79,35 +79,42 @@ const LoginMessage: React.FC<{
 
 const Login: React.FC = () => {
   const [userLoginState, setUserLoginState] = useState<API.LoginResult>({});
-  const {initialState, setInitialState} = useModel('@@initialState');
+  // const {initialState, setInitialState} = useModel('@@initialState');
   const {styles} = useStyles();
   const intl = useIntl();
 
-  const fetchUserInfo = async () => {
-    const userInfo = await initialState?.fetchUserInfo?.();
-    if (userInfo) {
-      flushSync(() => {
-        setInitialState((s) => ({
-          ...s,
-          currentUser: userInfo,
-        }));
-      });
-    }
-  };
+  useEffect(() => {
+    localStorage.removeItem('token');
+  }, []);
 
+  // const fetchUserInfo = async () => {
+  //   const userInfo = await initialState?.fetchUserInfo?.();
+  //   if (userInfo) {
+  //     flushSync(() => {
+  //       setInitialState((s) => ({
+  //         ...s,
+  //         currentUser: userInfo,
+  //       }));
+  //     });
+  //   }
+  // };
+
+  // console.log(initialState)
   const handleSubmit = async (values: API.LoginParams) => {
     try {
       // 登录
       const msg = await login({...values});
       if (msg.status === 'ok') {
+        localStorage.setItem('token', msg.token);
         const defaultLoginSuccessMessage = intl.formatMessage({
           id: 'pages.login.success',
           defaultMessage: '登录成功！',
         });
         message.success(defaultLoginSuccessMessage);
-        await fetchUserInfo();
-        const urlParams = new URL(window.location.href).searchParams;
-        window.location.href = urlParams.get('redirect') || '/';
+        // await fetchUserInfo();
+        // const urlParams = new URL(window.location.href).searchParams;
+        // console.log(urlParams)
+        window.location.href = '/dashboard';
         return;
       }
       console.log(msg);
@@ -165,7 +172,7 @@ const Login: React.FC = () => {
           )}
           <>
             <ProFormText
-              name="username"
+              name="email"
               fieldProps={{
                 size: 'large',
                 prefix: <UserOutlined/>,

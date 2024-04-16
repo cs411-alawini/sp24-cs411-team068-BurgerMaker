@@ -1,5 +1,6 @@
-import { Card, Modal, Table, Tooltip } from 'antd';
-import { useEffect, useState } from 'react';
+import {Card, Modal, Table, Tooltip} from 'antd';
+import {useEffect, useState} from 'react';
+import {fetchPortfolios, fetchPortfoliosStatusAndCost, fetchTrades} from '../service'
 
 function isColorLight(color) {
   const hex = color.toString(16).padStart(6, '0');
@@ -18,40 +19,13 @@ function PortfolioList() {
   // const userId = "054fb851-41ab-4cd3-9b81-eae67a41690d";
 
   const userId = "04b6086e-97a3-4e2c-b36c-27f260aa1f16";
-  const fetchPortfolios = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:29979/test/${userId}/portfolio`,
-      );
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
-      return [];
-    }
-  };
-
-  const fetchPortfoliosStatusAndCost = async () => {
-    try {
-      const response = await fetch(`http://localhost:29979/test/${userId}/portfolio-status`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
-      return [];
-    }
-  };
 
   const combineData = async () => {
-    const portfolios = await fetchPortfolios();
-    const portfoliosStatus = await fetchPortfoliosStatusAndCost();
+    const portfolios = await fetchPortfolios(userId);
+    const portfoliosStatus = await fetchPortfoliosStatusAndCost(userId);
 
     // Map over the portfolios and find corresponding status data, generate serialId based on index
-    const combinedData = portfolios.map((portfolio, index) => {
+    const combinedData = portfolios?.map((portfolio, index) => {
       // Find the corresponding status and cost information by matching Portfolio_ID with id
       const statusData = portfoliosStatus.find(status => status.Portfolio_ID === portfolio.id) || {};
 
@@ -74,28 +48,13 @@ function PortfolioList() {
     setCombinedPortfolios(combinedData);
   };
 
-
-
-  const fetchTrades = async (portfolioId) => {
-    try {
-      const response = await fetch(`http://localhost:5001/test/${portfolioId}/trade`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const jsonData = await response.json();
-      setTrades(jsonData);
-      setIsModalVisible(true);
-    } catch (error) {
-      console.error('Failed to fetch trades:', error);
-    }
-  };
-
   useEffect(() => {
     combineData();
   }, []);
 
-  const handleNameClick = (portfolioId) => {
-    fetchTrades(portfolioId);
+  const handleNameClick = async (portfolioId) => {
+    setTrades(await fetchTrades(portfolioId));
+    setIsModalVisible(true);
   };
 
   const closeModal = () => {
@@ -104,9 +63,12 @@ function PortfolioList() {
 
   const getColorForRisk = (status) => {
     switch (status) {
-      case 'risk_high': return '#ff4d4f'; // red
-      case 'risk_mid': return '#faad14'; // yellow
-      default: return '#52c41a'; // green
+      case 'risk_high':
+        return '#ff4d4f'; // red
+      case 'risk_mid':
+        return '#faad14'; // yellow
+      default:
+        return '#52c41a'; // green
     }
   };
 
@@ -144,7 +106,7 @@ function PortfolioList() {
       key: 'risk',
       render: status => (
         <span style={{ color: getColorForRisk(status) }}>
-        {status.toUpperCase().replace('RISK_', '')}
+        {status?.toUpperCase().replace('RISK_', '')}
       </span>
       )
     },

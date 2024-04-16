@@ -8,6 +8,7 @@ import useStyles from '../style.style';
 import Yuan from '../utils/Yuan';
 import { ChartCard, Field } from './Charts';
 import Trend from './Trend';
+import {getMarketValue, getPostLike} from '../service';
 const topColResponsiveProps = {
   xs: 24,
   sm: 12,
@@ -28,15 +29,8 @@ const IntroduceRow = () => {
   const fetchMarketValue = async () => {
     setLoading(prev => ({ ...prev, marketValue: true }));
     try {
-      const response = await fetch('http://localhost:29979/api/trade/value');
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const jsonData = await response.json();
-      console.log(jsonData);
-      setMarketValue(jsonData.value);
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
+      const response = await getMarketValue();
+      setMarketValue(response.value);
     } finally {
       setLoading(prev => ({ ...prev, marketValue: false }));
     }
@@ -45,15 +39,8 @@ const IntroduceRow = () => {
   const fetchLikeSum = async () => {
     setLoading(prev => ({ ...prev, postLikeSum: true }));
     try {
-      const response = await fetch('http://localhost:29979/api/post/like');
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const jsonData = await response.json();
-      console.log(jsonData);
-      setPostLikeSum(jsonData.value);
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
+      const response = await getPostLike();
+      setPostLikeSum(response.value);
     } finally {
       setLoading(prev => ({ ...prev, postLikeSum: false }));
     }

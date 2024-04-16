@@ -1,7 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
 const db = require('../db/connection');
+const crypto = require('crypto');
+
 const router = express.Router();
+
 
 // trade
 // router.post('/trade', (req, res) => {
@@ -86,5 +90,41 @@ router.get('/post/like', async (req, res) => {
     return res.json(mock.postLike);
 });
 
+router.get('/user', async (req, res) => {
+    if (!req.user) {
+        res.status(401).json({message: "Not logged in. Please login to proceed"})
+    } else {
+        console.log('cur userid: ', req.user);
+        const q = `
+            SELECT * FROM User
+            WHERE id = ?
+        `;
+        db.getConnection((err, connection) => {
+            if (err) {
+                return res.status(500).json({message: 'Internal server error getting database connection'});
+            } else {
+                connection.query(q, [req.user], (err, results) => {
+                    connection.release(); // Release the connection back to the pool
+
+                    if (err) {
+                        return res.status(500).json({message: 'Error querying database'});
+                    } else {
+                        // Map the results to the desired format
+                        const listData = results.map(user => ({
+                            id: user.id,
+                            name: user.name || 'Unknown User',
+                            email: user.email,
+                            join_time: user.join_time,
+                            balance: user.balance,
+                            burger_coin: user.burger_coin
+                        }));
+
+                        res.json(listData);
+                    }
+                })
+            }
+        })
+    }
+});
 
 module.exports = router;

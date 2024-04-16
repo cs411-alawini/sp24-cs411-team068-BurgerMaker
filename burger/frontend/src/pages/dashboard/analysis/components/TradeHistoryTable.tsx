@@ -1,8 +1,9 @@
 import React from 'react';
-import { Table } from 'antd';
-import type { TableColumnsType, TableProps } from 'antd';
-import { Suspense, useState, useEffect, useMemo } from 'react';
+import {Table} from 'antd';
+import type {TableColumnsType} from 'antd';
+import {useState, useEffect, useMemo} from 'react';
 import moment from 'moment';
+import {getTrade} from "@/pages/dashboard/analysis/service";
 
 interface DataType {
   id: string;
@@ -24,13 +25,9 @@ const TradeHistoryTable = () => {
     const fetchMarketValue = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:29979/api/trade');
-            if (!response.ok) {
-            throw new Error('Network response was not ok');
-            }
-            const jsonData = await response.json();
-            console.log(jsonData);
-            setData(jsonData);
+          const response = await getTrade();
+          console.log(response);
+          setData(response);
         } catch (error) {
             console.error('Failed to fetch data:', error);
         } finally {
@@ -38,27 +35,27 @@ const TradeHistoryTable = () => {
         }
     };
 
-    const assetOptions = useMemo(() => {
-        return [...new Set(data?.map(item => item.asset_name))];
-    }, [data]);
-    
-    const portfolioOptions = useMemo(() => {
+  const assetOptions = useMemo(() => {
+    return [...new Set(data?.map(item => item.asset_name))];
+  }, [data]);
+
+  const portfolioOptions = useMemo(() => {
     return [...new Set(data?.map(item => item.portfolio_name))];
-    }, [data]);
+  }, [data]);
 
-    useEffect(() => {
-        fetchMarketValue();
-    },[])
+  useEffect(() => {
+    fetchMarketValue();
+  }, [])
 
-    const columns: TableColumnsType<DataType> = [
-        {
-          title: 'Trade ID',
-          dataIndex: 'id',
-          showSorterTooltip: { target: 'full-header' },
-        },
-        {
-          title: 'Portfolio',
-          dataIndex: 'portfolio_name', // name not id
+  const columns: TableColumnsType<DataType> = [
+    {
+      title: 'Trade ID',
+      dataIndex: 'id',
+      showSorterTooltip: {target: 'full-header'},
+    },
+    {
+      title: 'Portfolio',
+      dataIndex: 'portfolio_name', // name not id
           filters: portfolioOptions.map(option => ({ text: option, value: option })),
           onFilter: (value, record) => record.portfolio_name === value,
         },
@@ -85,12 +82,14 @@ const TradeHistoryTable = () => {
       ];
 
     return (
-        <Table
-            columns={columns}
-            dataSource={data}
-            // onChange={onChange}
-            showSorterTooltip={{ target: 'sorter-icon' }}
-        />
+      <Table
+        columns={columns}
+        dataSource={data}
+        loading={loading}
+        // onChange={onChange}
+        showSorterTooltip={{target: 'sorter-icon'}}
+        rowKey='id'
+      />
     );
 };
 
