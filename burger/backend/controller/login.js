@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
 const db = require('../db/connection');
+const CryptoJS = require("crypto-js");
 const router = express.Router();
 
 router.post('/', (req, res) => {
@@ -11,18 +11,16 @@ router.post('/', (req, res) => {
         if (err) {
             res.status(500).json({message: 'Internal server error'});
         } else {
-            connection.query(`SELECT id, password FROM dev.User WHERE email = ?`, [email], (err, rows) => {
+            const pwdMD5 = CryptoJS.MD5(password).toString();
+            // console.log('now:', email, pwdMD5,password, userId)
+            connection.query(`SELECT id, password FROM dev.User WHERE email = ? AND password = ?`, [email, pwdMD5], (err, rows) => {
                 if (err) {
                     res.status(500).json({message: 'Internal server error'});
-                } else if (!rows) {
-                    res.status(401).json({message: `Can not find the user: ${email}`});
-                } else if (rows[0].password !== password) {
-                    res.status(401).json({message: `Password not match: ${email}`});
+                } else if (rows.length !== 1) {
+                    res.status(401).json({message: `Login failed: ${email}`});
                 } else {
-                    console.log(rows)
                     userId = rows[0].id;
                 }
-                console.log('now:', email, password, userId)
 
                 const token = jwt.sign({userId: userId}, "yunchao", {expiresIn: '1y'});
                 res.json({
