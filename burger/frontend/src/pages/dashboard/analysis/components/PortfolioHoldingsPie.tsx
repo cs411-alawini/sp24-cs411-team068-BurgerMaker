@@ -11,7 +11,7 @@ const PortfolioHoldingsPie = ({ userId }) => {
     const fetchHoldingsData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`http://localhost:5001/test/${userId}/holds`);
+        const response = await fetch(`http://localhost:29979/test/${userId}/holds`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }

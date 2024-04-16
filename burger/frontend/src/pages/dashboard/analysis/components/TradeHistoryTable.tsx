@@ -24,7 +24,7 @@ const TradeHistoryTable = () => {
     const fetchMarketValue = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:5001/api/trade');
+            const response = await fetch('http://localhost:29979/api/trade');
             if (!response.ok) {
             throw new Error('Network response was not ok');
             }

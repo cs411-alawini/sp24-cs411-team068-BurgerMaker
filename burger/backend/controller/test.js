@@ -44,81 +44,73 @@ router.get('/user', async (req, res) => {
     });
 });
 
-function generateFakeList(count) {
-  const titles = ['Alipay', 'Angular', 'Ant Design', 'Ant Design Pro', 'Bootstrap', 'React', 'Vue', 'Webpack'];
-  const avatars = [
-    'https://gw.alipayobjects.com/zos/rmsportal/eeHMaZBwmTvLdIwMfBpg.png',
-    'https://gw.alipayobjects.com/zos/rmsportal/eeHMaZBwmTvLdIwMfBpg.png',
-    'https://gw.alipayobjects.com/zos/rmsportal/eeHMaZBwmTvLdIwMfBpg.png',
-    'https://gw.alipayobjects.com/zos/rmsportal/eeHMaZBwmTvLdIwMfBpg.png',
-    'https://gw.alipayobjects.com/zos/rmsportal/eeHMaZBwmTvLdIwMfBpg.png',
-    'https://gw.alipayobjects.com/zos/rmsportal/eeHMaZBwmTvLdIwMfBpg.png',
-    'https://gw.alipayobjects.com/zos/rmsportal/eeHMaZBwmTvLdIwMfBpg.png',
-    'https://gw.alipayobjects.com/zos/rmsportal/eeHMaZBwmTvLdIwMfBpg.png'
-  ];
-  const covers = [
-    'https://gw.alipayobjects.com/zos/rmsportal/uMfMFlvUuceEyPpotzlq.png',
-    'https://gw.alipayobjects.com/zos/rmsportal/uMfMFlvUuceEyPpotzlq.png',
-    'https://gw.alipayobjects.com/zos/rmsportal/uMfMFlvUuceEyPpotzlq.png',
-    'https://gw.alipayobjects.com/zos/rmsportal/uMfMFlvUuceEyPpotzlq.png'
-  ];
-  const desc = [
-    '那是一种内在的东西，他们到达不了，也无法触及的。',
-    '希望是一个好东西，也许是最好的，好东西是不会消逝的。',
-    '生命就像一盒巧克力，结果往往出人意料。',
-    '城镇中有那么多的瓦砾，但有希望的地方，草就能生长。',
-    '这个世界不是由那些乐观的人所构建的。'
-  ];
+// CREATE TABLE IF NOT EXISTS User(
+//     id VARCHAR(64) PRIMARY KEY,
+//     name VARCHAR(256),
+//     password VARCHAR(256),
+//     email VARCHAR(256),
+//     join_time DATETIME,
+//     balance DECIMAL(20,8),
+//     burger_coin INT    
+// );
 
-  const list = [];
-  for (let i = 0; i < count; i++) {
-    list.push({
-      id: `fake-list-${Math.random().toString(36).slice(2, 6)}${i}`,
-      owner: 'User ' + i,
-      title: titles[i % titles.length],
-      avatar: avatars[i % avatars.length],
-      cover: covers[i % covers.length],
-      status: ['active', 'exception', 'normal'][i % 3],
-      percent: Math.ceil(Math.random() * 50) + 50,
-      logo: avatars[i % avatars.length],
-      href: 'https://ant.design',
-      updatedAt: new Date(new Date().getTime() - 1000 * 60 * 60 * 2 * i).getTime(),
-      createdAt: new Date(new Date().getTime() - 1000 * 60 * 60 * 2 * i).getTime(),
-      subDescription: desc[i % desc.length],
-      description: '在中台产品的研发过程中，会出现不同的设计规范和实现方式，但其中往往存在很多类似的页面和组件，这些类似的组件会被抽离成一套标准规范。',
-      activeUser: Math.ceil(Math.random() * 100000) + 100000,
-      newUser: Math.ceil(Math.random() * 1000) + 1000,
-      star: Math.ceil(Math.random() * 100) + 100,
-      like: Math.ceil(Math.random() * 100) + 100,
-      message: Math.ceil(Math.random() * 10) + 10,
-      content: '段落示意：蚂蚁金服设计平台 ant.design，用最小的工作量，无缝接入蚂蚁金服生态，提供跨越设计与开发的体验解决方案。',
-      members: [
-        {
-          avatar: 'https://gw.alipayobjects.com/zos/rmsportal/ZiESqWwCXBRQoaPONSJe.png',
-          name: '曲丽丽',
-          id: 'member1',
-        },
-        {
-          avatar: 'https://gw.alipayobjects.com/zos/rmsportal/tBOxZPlITHqwlGjsJWaF.png',
-          name: '王昭君',
-          id: 'member2',
-        },
-        {
-          avatar: 'https://gw.alipayobjects.com/zos/rmsportal/sBxjgqiuHMGRkIjqlQCd.png',
-          name: '董娜娜',
-          id: 'member3',
-        },
-      ]
-    });
-  }
-  return list;
-}
+// CREATE TABLE IF NOT EXISTS Post(
+//     id VARCHAR(64) PRIMARY KEY,
+//     title VARCHAR(256),
+//     thumbs_up_num INT,
+//     description TEXT,
+//     content TEXT,
+//     user_id VARCHAR(64) REFERENCES User(id) on delete set NULL on update cascade,
+//     create_time DATETIME,
+//     update_time DATETIME
+// );
 
 router.get('/list_real2', async (req, res) => {
-    const count = parseInt(req.query.count) || 10; // Default to 10 if no count parameter is provided
-    const listData = generateFakeList(count);
-    res.json(listData);
+    // Parse the count from query, default to 10 if not provided
+    const count = parseInt(req.query.count) || 10;
+
+    db.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).json({ message: 'Internal server error getting database connection' });
+        } else {
+            // SQL query to fetch posts and user details
+            const query = `
+                SELECT p.id, p.title, p.description, p.create_time, p.update_time, p.thumbs_up_num, p.content,
+                       u.name AS owner, u.id AS user_id
+                FROM Post p
+                LEFT JOIN User u ON p.user_id = u.id
+                ORDER BY p.create_time DESC
+                LIMIT ?
+            `;
+
+            connection.query(query, [count], (err, results) => {
+                connection.release(); // Release the connection back to the pool
+
+                if (err) {
+                    return res.status(500).json({ message: 'Error querying database' });
+                } else {
+                    // Map the results to the desired format
+                    const listData = results.map(post => ({
+                        id: post.id,
+                        owner: post.owner || 'Unknown User',
+                        title: post.title,
+                        avatar: post.avatar || 'https://example.com/default_avatar.png',
+                        cover: 'https://example.com/default_cover.png', // Assuming a default cover
+                        updatedAt: post.update_time,
+                        createdAt: post.create_time,
+                        description: post.description,
+                        star: post.thumbs_up_num,
+                        content: post.content
+                    }));
+
+                    res.json(listData);
+                }
+            });
+        }
+    });
 });
+
+
 
 const holdings = [
     {
