@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { LikeOutlined, LoadingOutlined, MessageOutlined, StarOutlined } from '@ant-design/icons';
-import { Button, Card, Form, Input, List } from 'antd';
+import { Button, Card, Form, Input, List, Pagination } from 'antd';
 import type { FC } from 'react';
 import ArticleListContent from './components/ArticleListContent';
 import useStyles from './style.style';
 
-const pageSize = 5;
+const pageSize = 10;
 
 const Articles: FC = () => {
   const [form] = Form.useForm();
@@ -13,19 +13,22 @@ const Articles: FC = () => {
   const [expandedId, setExpandedId] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(50);
 
   const { styles } = useStyles();
 
   // Fetch posts based on the searchText
-  const getPosts = async (search = '') => {
+  const getPosts = async (search = '', page = 1, pageSize = 10) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:29979/test/list_real2?search=${encodeURIComponent(search)}`);
+      const response = await fetch(`http://localhost:29979/test/list_real2?search=${encodeURIComponent(search)}&count=${pageSize}&page=${page}`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-      const posts = await response.json();
-      setPosts(posts);
+      const json = await response.json();
+      setPosts(json.posts);
+      setTotalItems(json.total);
     } catch (error) {
       console.error('Failed to fetch data:', error);
     }
@@ -34,8 +37,8 @@ const Articles: FC = () => {
 
   // Effect to fetch posts when searchText changes
   useEffect(() => {
-    getPosts(searchText);
-  }, [searchText]);
+    getPosts(searchText, currentPage);
+  }, [searchText, currentPage]);
 
   const handleSearch = (values) => {
     setSearchText(values.search); // Update searchText to re-fetch in useEffect
@@ -43,6 +46,10 @@ const Articles: FC = () => {
 
   const handleSeeMore = (id) => {
     setExpandedId(expandedId === id ? null : id);
+  };
+
+  const handlePageChange = page => {
+    setCurrentPage(page);
   };
 
   return (
@@ -96,6 +103,14 @@ const Articles: FC = () => {
               )}
             </List.Item>
           )}
+        />
+        <Pagination
+          current={currentPage}
+          // pageSize={pageSize}
+          onChange={handlePageChange}
+          total={totalItems}
+          style={{ textAlign: 'center', marginTop: '20px' }}
+          showSizeChanger={false}
         />
       </Card>
     </>

@@ -66,8 +66,9 @@ router.get('/user', async (req, res) => {
 // );
 
 router.get('/list_real2', async (req, res) => {
-    // Parse the count from query, default to 10 if not provided
+    // Parse the count and page from the query, default to 10 and page 1 if not provided
     const count = parseInt(req.query.count) || 10;
+    const page = parseInt(req.query.page) || 1;
     // Retrieve the search parameter from the query string
     const { search } = req.query;
 
@@ -75,53 +76,76 @@ router.get('/list_real2', async (req, res) => {
         if (err) {
             return res.status(500).json({ message: 'Internal server error getting database connection' });
         } else {
-            // Initialize the base query
-            let query = `
-                SELECT p.id, p.title, p.description, p.create_time, p.update_time, p.thumbs_up_num, p.content,
-                       u.name AS owner, u.id AS user_id
+            // First, we'll handle the total count query
+            let countQuery = `
+                SELECT COUNT(*) AS total
                 FROM Post p
                 LEFT JOIN User u ON p.user_id = u.id
             `;
 
-            // Initialize the parameters array
-            const params = [];
+            const countParams = [];
 
-            // If a search term is provided, modify the query to include a WHERE clause
             if (search) {
-                query += ' WHERE p.title LIKE ? OR p.description LIKE ?';
-                params.push(`%${search}%`, `%${search}%`);
+                countQuery += ' WHERE p.title LIKE ? OR p.description LIKE ?';
+                countParams.push(`%${search}%`, `%${search}%`);
             }
 
-            // Add ordering and limiting
-            query += ' ORDER BY p.create_time DESC LIMIT ?';
-            params.push(count);
-
-            connection.query(query, params, (err, results) => {
-                connection.release(); // Always release the connection back to the pool
-
+            connection.query(countQuery, countParams, (err, countResults) => {
                 if (err) {
-                    return res.status(500).json({ message: 'Error querying database' });
+                    connection.release();
+                    return res.status(500).json({ message: 'Error querying total count' });
                 } else {
-                    // Map the results to the desired format
-                    const listData = results.map(post => ({
-                        id: post.id,
-                        owner: post.owner || 'Unknown User',
-                        title: post.title,
-                        avatar: post.avatar || 'https://example.com/default_avatar.png',
-                        cover: 'https://example.com/default_cover.png', // Assuming a default cover
-                        updatedAt: post.update_time,
-                        createdAt: post.create_time,
-                        description: post.description,
-                        star: post.thumbs_up_num,
-                        content: post.content
-                    }));
+                    const totalItems = countResults[0].total;
 
-                    res.json(listData);
+                    // Now handle the main data query with pagination
+                    let dataQuery = `
+                        SELECT p.id, p.title, p.description, p.create_time, p.update_time, p.thumbs_up_num, p.content,
+                               u.name AS owner, u.id AS user_id
+                        FROM Post p
+                        LEFT JOIN User u ON p.user_id = u.id
+                    `;
+
+                    const dataParams = [];
+
+                    if (search) {
+                        dataQuery += ' WHERE p.title LIKE ? OR p.description LIKE ?';
+                        dataParams.push(`%${search}%`, `%${search}%`);
+                    }
+
+                    dataQuery += ' ORDER BY p.create_time DESC LIMIT ? OFFSET ?';
+                    const offset = (page - 1) * count;
+                    dataParams.push(count, offset);
+
+                    connection.query(dataQuery, dataParams, (err, results) => {
+                        connection.release(); // Always release the connection back to the pool
+
+                        if (err) {
+                            return res.status(500).json({ message: 'Error querying posts data' });
+                        } else {
+                            // Map the results to the desired format
+                            const listData = results.map(post => ({
+                                id: post.id,
+                                owner: post.owner || 'Unknown User',
+                                title: post.title,
+                                avatar: post.avatar || 'https://example.com/default_avatar.png',
+                                cover: 'https://example.com/default_cover.png', // Assuming a default cover
+                                updatedAt: post.update_time,
+                                createdAt: post.create_time,
+                                description: post.description,
+                                star: post.thumbs_up_num,
+                                content: post.content
+                            }));
+
+                            // Send both posts and total count in the response
+                            res.json({ posts: listData, total: totalItems });
+                        }
+                    });
                 }
             });
         }
     });
 });
+
 
 
 
