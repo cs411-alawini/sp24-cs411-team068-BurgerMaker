@@ -18,11 +18,11 @@ function PortfolioList() {
 
   // const userId = "054fb851-41ab-4cd3-9b81-eae67a41690d";
 
-  const userId = "04b6086e-97a3-4e2c-b36c-27f260aa1f16";
+  // const userId = "04b6086e-97a3-4e2c-b36c-27f260aa1f16";
 
   const combineData = async () => {
-    const portfolios = await fetchPortfolios(userId);
-    const portfoliosStatus = await fetchPortfoliosStatusAndCost(userId);
+    const portfolios = await fetchPortfolios();
+    const portfoliosStatus = await fetchPortfoliosStatusAndCost();
 
     // Map over the portfolios and find corresponding status data, generate serialId based on index
     const combinedData = portfolios?.map((portfolio, index) => {

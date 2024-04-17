@@ -23,9 +23,9 @@ export async function getTrade(options?: { [key: string]: any }) {
   })
 }
 
-export async function fetchPortfolios(userId: string, options?: { [key: string]: any }) {
+export async function fetchPortfolios(options?: { [key: string]: any }) {
   return request(
-    `/test/${userId}/portfolio`,
+    `/api/portfolio`,
     {
       method: 'GET',
       ...(options || {}),
@@ -33,9 +33,9 @@ export async function fetchPortfolios(userId: string, options?: { [key: string]:
   )
 }
 
-export async function fetchPortfoliosStatusAndCost(userId: string, options?: { [key: string]: any }) {
+export async function fetchPortfoliosStatusAndCost( options?: { [key: string]: any }) {
   return request(
-    `/test/${userId}/portfolio-status`,
+    `/api/portfolio-status`,
     {
       method: 'GET',
       ...(options || {})
@@ -45,7 +45,7 @@ export async function fetchPortfoliosStatusAndCost(userId: string, options?: { [
 
 export async function fetchTrades(portfolioId: string, options?: { [key: string]: any }) {
   return request(
-    `/test/${portfolioId}/trade`,
+    `/api/${portfolioId}/trade`,
     {
       method: 'GET',
       ...(options || {})
@@ -53,9 +53,9 @@ export async function fetchTrades(portfolioId: string, options?: { [key: string]
   )
 }
 
-export async function getHold(userId: string, options?: { [key: string]: any }) {
+export async function getHold(options?: { [key: string]: any }) {
   return request(
-    `/test/${userId}/holds`,
+    `/api/holds`,
     {
       method: 'GET',
       ...(options || {})

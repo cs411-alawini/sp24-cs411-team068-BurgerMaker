@@ -12,11 +12,11 @@ const PortfolioHoldingsPie = ({userId}) => {
     const fetchHoldingsData = async () => {
       setLoading(true);
       try {
-        const response = await getHold(userId);
+        const response = await getHold();
         // 转换数据以适应饼图
         const formattedData = response.map((item) => ({
           type: item.portfolio_name,
-          value: parseFloat(item.quantity),
+          value: parseFloat(item.total_cost),
         }));
         setHoldingsData(formattedData);
       } catch (error) {
@@ -50,6 +50,10 @@ const PortfolioHoldingsPie = ({userId}) => {
             return `${item.type}: ${item.value}`;
           },
           content: '{name}: {percentage}',
+          layout: [
+            { type: 'overlap' },  // 使用内置的避重策略
+            { type: 'adjust-color' }  // 自动调整文本颜色以提高可读性
+          ]
         }}
       />
     </Card>
