@@ -35,6 +35,29 @@ const Articles: FC = () => {
     setLoading(false);
   };
 
+  const starPost = async (postId) => {
+    try {
+      const response = await fetch('http://localhost:29979/test/star_post', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ postId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      // Fetch posts again to update the UI
+      getPosts(searchText, currentPage);
+      console.log("postId:")
+      console.log(postId)
+    } catch (error) {
+      console.error('Failed to star post:', error);
+    }
+  };
+
   // Effect to fetch posts when searchText changes
   useEffect(() => {
     getPosts(searchText, currentPage);
@@ -79,12 +102,14 @@ const Articles: FC = () => {
           dataSource={posts}
           renderItem={(item) => (
             <List.Item
-              key={item.id}
-              actions={[
-                <Button key="star" icon={<StarOutlined />} >{item.star}</Button>,
-              ]}
-              extra={<div className={styles.listItemExtra} />}
-            >
+            key={item.id}
+            actions={[
+              <Button key="star" icon={<StarOutlined />} onClick={() => starPost(item.id)}>
+                {item.star}
+              </Button>,
+            ]}
+            extra={<div className={styles.listItemExtra} />}
+          >
               {expandedId === item.id ? (
                 <ArticleListContent data={item} />
               ) : (
