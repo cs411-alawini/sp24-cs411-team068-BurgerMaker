@@ -147,7 +147,32 @@ router.get('/list_real2', async (req, res) => {
 });
 
 
+// New route to handle increasing the star count
+router.post('/star_post', async (req, res) => {
+    const postId = req.body.postId;  // Ensure you have middleware to parse JSON bodies
 
+    if (!postId) {
+        return res.status(400).json({ message: 'Post ID must be provided' });
+    }
+
+    db.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).json({ message: 'Internal server error getting database connection' });
+        } else {
+            const updateQuery = 'UPDATE Post SET thumbs_up_num = thumbs_up_num + 1 WHERE id = ?';
+
+            connection.query(updateQuery, [postId], (err, result) => {
+                connection.release();  // Always release the connection back to the pool
+
+                if (err || result.affectedRows === 0) {
+                    return res.status(500).json({ message: 'Error updating post star count' });
+                }
+
+                res.json({ message: 'Post starred successfully' });
+            });
+        }
+    });
+});
 
 
 
