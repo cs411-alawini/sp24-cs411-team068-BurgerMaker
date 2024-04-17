@@ -65,6 +65,42 @@ router.get('/user', async (req, res) => {
 //     update_time DATETIME
 // );
 
+router.post('/post/publish', async (req, res) => {
+    const { title, description, content } = req.body;
+    const user_id = req.user;
+    if (!title || !description || !content) {
+        return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    db.getConnection((err, connection) => {
+        if (err) {
+            res.status(500).json({ message: 'Internal server error, unable to establish database connection' });
+        } else {
+            const query = `
+                INSERT INTO Post (
+                    id,
+                    title,
+                    thumbs_up_num,
+                    description,
+                    content,
+                    user_id,
+                    create_time,
+                    update_time
+                ) VALUES (UUID(), ?, 0, ?, ?, ?, NOW(), NOW());
+            `;
+            connection.query(query, [title, description, content, user_id], (err, results) => {
+                connection.release(); // Release the connection back to the pool
+                if (err) {
+                    res.status(500).json({ message: 'Internal server error, failed to insert post' });
+                } else {
+                    res.status(200).json({ message: 'Post published successfully', postId: results.insertId });
+                }
+            });
+        }
+    });
+});
+
+
 router.get('/list_real2', async (req, res) => {
     // Parse the count and page from the query, default to 10 and page 1 if not provided
     const count = parseInt(req.query.count) || 10;

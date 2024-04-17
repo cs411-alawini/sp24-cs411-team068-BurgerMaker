@@ -1,17 +1,30 @@
 import React from 'react';
-import { Button, Form, Input, Upload, message } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import { Button, Form, Input, message } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
-import { history, useLocation, useMatch } from '@umijs/max';
 import type { FC } from 'react';
 
 const Publish: FC = () => {
   const [form] = Form.useForm();
 
-  const handleSubmit = (values: any) => {
+  const handleSubmit = async (values: any) => {
     console.log('Received values of form:', values);
-    message.success('Post published successfully!');
-    // Implement the backend request to publish the post.
+    try {
+      const response = await fetch('http://localhost:29979/test/post/publish', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const result = await response.json();
+      message.success('Post published successfully!');
+    } catch (error) {
+      message.error('Failed to publish the post.');
+      console.error('Failed to submit form:', error);
+    }
   };
 
   return (
@@ -29,6 +42,13 @@ const Publish: FC = () => {
             rules={[{ required: true, message: 'Please input the title of your post!' }]}
           >
             <Input placeholder="Enter the title of your post" />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label="Description"
+            rules={[{ required: true, message: 'Please input the description of your post!' }]}
+          >
+            <Input placeholder="Enter a brief description of your post" />
           </Form.Item>
           <Form.Item
             name="content"
