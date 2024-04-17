@@ -68,23 +68,36 @@ router.get('/user', async (req, res) => {
 router.get('/list_real2', async (req, res) => {
     // Parse the count from query, default to 10 if not provided
     const count = parseInt(req.query.count) || 10;
+    // Retrieve the search parameter from the query string
+    const { search } = req.query;
 
     db.getConnection((err, connection) => {
         if (err) {
             return res.status(500).json({ message: 'Internal server error getting database connection' });
         } else {
-            // SQL query to fetch posts and user details
-            const query = `
+            // Initialize the base query
+            let query = `
                 SELECT p.id, p.title, p.description, p.create_time, p.update_time, p.thumbs_up_num, p.content,
                        u.name AS owner, u.id AS user_id
                 FROM Post p
                 LEFT JOIN User u ON p.user_id = u.id
-                ORDER BY p.create_time DESC
-                LIMIT ?
             `;
 
-            connection.query(query, [count], (err, results) => {
-                connection.release(); // Release the connection back to the pool
+            // Initialize the parameters array
+            const params = [];
+
+            // If a search term is provided, modify the query to include a WHERE clause
+            if (search) {
+                query += ' WHERE p.title LIKE ? OR p.description LIKE ?';
+                params.push(`%${search}%`, `%${search}%`);
+            }
+
+            // Add ordering and limiting
+            query += ' ORDER BY p.create_time DESC LIMIT ?';
+            params.push(count);
+
+            connection.query(query, params, (err, results) => {
+                connection.release(); // Always release the connection back to the pool
 
                 if (err) {
                     return res.status(500).json({ message: 'Error querying database' });
@@ -109,6 +122,7 @@ router.get('/list_real2', async (req, res) => {
         }
     });
 });
+
 
 
 
