@@ -530,5 +530,5 @@ node_modules/xmlchars/
 node_modules/y18n/
 node_modules/yargs-parser/
 node_modules/yargs/
-package-lock.json
 
+.env

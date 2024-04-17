@@ -1,6 +1,64 @@
-import { request } from '@umijs/max';
-import type { AnalysisData } from './data';
+// import {request} from '@umijs/max';
+import {request} from '@/app'
 
-export async function fakeChartData(): Promise<{ data: AnalysisData }> {
-  return request('/api/fake_analysis_chart_data');
+
+export async function getMarketValue(options?: { [key: string]: any }) {
+  return request('/api/trade/value', {
+    method: 'GET',
+    ...(options || {}),
+  })
+}
+
+export async function getPostLike(options?: { [key: string]: any }) {
+  return request('/api/post/like', {
+    method: 'GET',
+    ...(options || {}),
+  })
+}
+
+export async function getTrade(options?: { [key: string]: any }) {
+  return request('/api/trade', {
+    method: 'GET',
+    ...(options || {}),
+  })
+}
+
+export async function fetchPortfolios(options?: { [key: string]: any }) {
+  return request(
+    `/api/portfolio`,
+    {
+      method: 'GET',
+      ...(options || {}),
+    }
+  )
+}
+
+export async function fetchPortfoliosStatusAndCost( options?: { [key: string]: any }) {
+  return request(
+    `/api/portfolio-status`,
+    {
+      method: 'GET',
+      ...(options || {})
+    }
+  )
+}
+
+export async function fetchTrades(portfolioId: string, options?: { [key: string]: any }) {
+  return request(
+    `/api/${portfolioId}/trade`,
+    {
+      method: 'GET',
+      ...(options || {})
+    }
+  )
+}
+
+export async function getHold(options?: { [key: string]: any }) {
+  return request(
+    `/api/holds`,
+    {
+      method: 'GET',
+      ...(options || {})
+    }
+  )
 }

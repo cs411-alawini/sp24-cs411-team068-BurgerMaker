@@ -26,22 +26,22 @@ const validatorPhone = (rule: any, value: string[], callback: (message?: string)
 const BaseView: React.FC = () => {
   const { styles } = useStyles();
   // 头像组件 方便以后独立，增加裁剪之类的功能
-  const AvatarView = ({ avatar }: { avatar: string }) => (
-    <>
-      <div className={styles.avatar_title}>头像</div>
-      <div className={styles.avatar}>
-        <img src={avatar} alt="avatar" />
-      </div>
-      <Upload showUploadList={false}>
-        <div className={styles.button_view}>
-          <Button>
-            <UploadOutlined />
-            更换头像
-          </Button>
-        </div>
-      </Upload>
-    </>
-  );
+  // const AvatarView = ({ avatar }: { avatar: string }) => (
+  //   <>
+  //     <div className={styles.avatar_title}>头像</div>
+  //     <div className={styles.avatar}>
+  //       <img src={avatar} alt="avatar" />
+  //     </div>
+  //     <Upload showUploadList={false}>
+  //       <div className={styles.button_view}>
+  //         <Button>
+  //           <UploadOutlined />
+  //           更换头像
+  //         </Button>
+  //       </div>
+  //     </Upload>
+  //   </>
+  // );
   const { data: currentUser, loading } = useRequest(() => {
     return queryCurrent();
   });
@@ -68,7 +68,7 @@ const BaseView: React.FC = () => {
               onFinish={handleFinish}
               submitter={{
                 searchConfig: {
-                  submitText: '更新基本信息',
+                  submitText: 'Updated!',
                 },
                 render: (_, dom) => dom[1],
               }}
@@ -81,26 +81,24 @@ const BaseView: React.FC = () => {
               <ProFormText
                 width="md"
                 name="email"
-                label="邮箱"
-                rules={[
-                  {
-                    required: true,
-                    message: '请输入您的邮箱!',
-                  },
-                ]}
+                label="Email"
               />
               <ProFormText
                 width="md"
                 name="name"
-                label="昵称"
-                rules={[
-                  {
-                    required: true,
-                    message: '请输入您的昵称!',
-                  },
-                ]}
+                label="Name"
               />
-              <ProFormTextArea
+              <ProFormText
+                width="md"
+                name="pwd"
+                label="Old Password"
+              />
+              <ProFormText
+                width="md"
+                name="npwd"
+                label="New Password"
+              />
+              {/* <ProFormTextArea
                 name="profile"
                 label="个人简介"
                 rules={[
@@ -127,9 +125,9 @@ const BaseView: React.FC = () => {
                     value: 'China',
                   },
                 ]}
-              />
+              /> */}
 
-              <ProForm.Group title="所在省市" size={8}>
+              {/* <ProForm.Group title="所在省市" size={8}>
                 <ProFormSelect
                   rules={[
                     {
@@ -188,8 +186,8 @@ const BaseView: React.FC = () => {
                     );
                   }}
                 </ProFormDependency>
-              </ProForm.Group>
-              <ProFormText
+              </ProForm.Group> */}
+              {/* <ProFormText
                 width="md"
                 name="address"
                 label="街道地址"
@@ -199,8 +197,8 @@ const BaseView: React.FC = () => {
                     message: '请输入您的街道地址!',
                   },
                 ]}
-              />
-              <ProFormFieldSet
+              /> */}
+              {/* <ProFormFieldSet
                 name="phone"
                 label="联系电话"
                 rules={[
@@ -215,12 +213,12 @@ const BaseView: React.FC = () => {
               >
                 <Input className={styles.area_code} />
                 <Input className={styles.phone_number} />
-              </ProFormFieldSet>
+              </ProFormFieldSet> */}
             </ProForm>
           </div>
-          <div className={styles.right}>
+          {/* <div className={styles.right}>
             <AvatarView avatar={getAvatarURL()} />
-          </div>
+          </div> */}
         </>
       )}
     </div>

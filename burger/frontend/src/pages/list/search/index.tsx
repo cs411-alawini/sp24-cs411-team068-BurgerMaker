@@ -10,15 +10,11 @@ type SearchProps = {
 const tabList = [
   {
     key: 'articles',
-    tab: '文章',
+    tab: 'Posts',
   },
   {
-    key: 'projects',
-    tab: '项目',
-  },
-  {
-    key: 'applications',
-    tab: '应用',
+    key: 'publish',
+    tab: ' Publish',
   },
 ];
 
@@ -32,11 +28,14 @@ const Search: FC<SearchProps> = () => {
       case 'articles':
         history.push(`${url}/articles`);
         break;
-      case 'applications':
-        history.push(`${url}/applications`);
-        break;
-      case 'projects':
-        history.push(`${url}/projects`);
+      // case 'applications':
+      //   history.push(`${url}/applications`);
+      //   break;
+      // case 'projects':
+      //   history.push(`${url}/projects`);
+      //   break;
+      case 'publish':
+        history.push(`${url}/publish`);
         break;
       default:
         break;
@@ -58,17 +57,17 @@ const Search: FC<SearchProps> = () => {
 
   return (
     <PageContainer
-      content={
-        <div style={{ textAlign: 'center' }}>
-          <Input.Search
-            placeholder="请输入"
-            enterButton="搜索"
-            size="large"
-            onSearch={handleFormSubmit}
-            style={{ maxWidth: 522, width: '100%' }}
-          />
-        </div>
-      }
+      // content={
+      //   <div style={{ textAlign: 'center' }}>
+      //     <Input.Search
+      //       placeholder="请输入"
+      //       enterButton="搜索"
+      //       size="large"
+      //       onSearch={handleFormSubmit}
+      //       style={{ maxWidth: 522, width: '100%' }}
+      //     />
+      //   </div>
+      // }
       tabList={tabList}
       tabActiveKey={getTabKey()}
       onTabChange={handleTabChange}
