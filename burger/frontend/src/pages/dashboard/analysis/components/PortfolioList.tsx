@@ -1,19 +1,33 @@
 import {Card, Modal, Table, Tooltip} from 'antd';
 import {useEffect, useState} from 'react';
-import {fetchPortfolios, fetchPortfoliosStatusAndCost, fetchTrades} from '../service'
+import { Pie } from '@ant-design/plots';
+import {
+  fetchPortfolios,
+  fetchPortfoliosStatusAndCost,
+  fetchPortfolioTrade,
+  fetchTrades,
+} from '../service'
 
 function isColorLight(color) {
+  if (typeof color !== 'number') {
+    // 如果颜色不是数字类型，返回默认的文本颜色为暗色
+    return false;
+  }
+
   const hex = color.toString(16).padStart(6, '0');
   const r = parseInt(hex.slice(0, 2), 16);
   const g = parseInt(hex.slice(2, 4), 16);
   const b = parseInt(hex.slice(4, 6), 16);
-  // Using the luminance formula to find brightness of the color
-  return (0.299 * r + 0.587 * g + 0.114 * b) > 186; // luminance threshold
+
+  // 使用亮度公式来判断颜色
+  return (0.299 * r + 0.587 * g + 0.114 * b) > 186; // 亮度阈值
 }
+
 
 function PortfolioList() {
   const [combinedPortfolios, setCombinedPortfolios] = useState([]);
   const [trades, setTrades] = useState([]);
+  const [holds, setHolds] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   // const userId = "054fb851-41ab-4cd3-9b81-eae67a41690d";
@@ -51,11 +65,22 @@ function PortfolioList() {
   useEffect(() => {
     combineData();
   }, []);
-
   const handleNameClick = async (portfolioId) => {
-    setTrades(await fetchTrades(portfolioId));
+    const fetchedTrades = await fetchTrades(portfolioId);
+    const fetchedHolds = await fetchPortfolioTrade(portfolioId);
+
+    // 首先更新状态
+    setTrades(fetchedTrades);
+    setHolds(fetchedHolds);
+
+    // 状态更新后再显示Modal
     setIsModalVisible(true);
+
+    // 更新后再打印日志，确保日志显示的是最新状态
+    console.log(portfolioId, '的trade:', fetchedTrades);
+    console.log(portfolioId, "的holds:", fetchedHolds);
   };
+
 
   const closeModal = () => {
     setIsModalVisible(false);
@@ -72,6 +97,18 @@ function PortfolioList() {
     }
   };
 
+
+  const tradeColumns = [
+    { title: 'Asset ID', dataIndex: 'asset_id', key: 'asset_id' },
+    { title: 'Quantity', dataIndex: 'quantity', key: 'quantity' },
+    { title: 'Price', dataIndex: 'price', key: 'price' },
+    {
+      title: 'Time',
+      dataIndex: 'time',
+      key: 'time',
+      render: time => new Date(time).toLocaleString(),
+    },
+  ];
 
   const columns = [
     {
@@ -124,6 +161,22 @@ function PortfolioList() {
     },
   ];
 
+  const config = {
+    appendPadding: 10,  // 增加更多的内边距
+    data: holds.map(item => ({
+      type: item.asset_id,
+      value: item.hold_quantity,
+    })),
+    angleField: 'value',
+    colorField: 'type',
+    radius: 0.75,  // 减小饼图的半径
+    innerRadius: 0.4,
+    label: {
+      type: 'outer',
+      content: '{name} {percentage}',
+    },
+    interactions: [{ type: 'element-active' }],
+  };
 
   return (
     <Card title="Portfolio List" bordered={false}>
@@ -134,27 +187,26 @@ function PortfolioList() {
         pagination={{ pageSize: 5 }}
       />
       <Modal
-        title="Trade Details"
+        title="Trade and Holdings Details"
         visible={isModalVisible}
         onCancel={closeModal}
+        width={800}
         footer={null}
+        key={Date.now()} // 每次模态框打开都提供一个新的key
       >
-        <Table
-          dataSource={trades}
-          columns={[
-            { title: 'Asset ID', dataIndex: 'asset_id', key: 'asset_id' },
-            { title: 'Quantity', dataIndex: 'quantity', key: 'quantity' },
-            { title: 'Price', dataIndex: 'price', key: 'price' },
-            {
-              title: 'Time',
-              dataIndex: 'time',
-              key: 'time',
-              render: time => new Date(time).toLocaleString(),
-            },
-          ]}
-          pagination={false}
-          rowKey="id"
-        />
+        <div style={{display: 'flex', justifyContent: 'space-between', overflow: 'hidden'}}>
+          <div style={{flex: 1, marginRight: '20px'}}>
+            <Table
+              dataSource={trades}
+              columns={tradeColumns}
+              pagination={{ pageSize: 4 }}  // 修改这里，设置每页显示4条记录
+              rowKey="id"
+            />
+          </div>
+          <div style={{flex: '1 1 auto', overflow: 'hidden'}} key={`pie-${Date.now()}`}>
+            <Pie {...config} />
+          </div>
+        </div>
       </Modal>
     </Card>
   );

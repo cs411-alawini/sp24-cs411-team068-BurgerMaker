@@ -53,9 +53,19 @@ export async function fetchTrades(portfolioId: string, options?: { [key: string]
   )
 }
 
-export async function getHold(options?: { [key: string]: any }) {
+export async function getTotalCostOfUser(options?: { [key: string]: any }) {
   return request(
-    `/api/holds`,
+    `/api/cost-info-of-user`,
+    {
+      method: 'GET',
+      ...(options || {})
+    }
+  )
+}
+
+export async function fetchPortfolioTrade(portfolioId: string, options?: { [key: string]: any }) {
+  return request(
+    `/api/${portfolioId}/holds`,
     {
       method: 'GET',
       ...(options || {})

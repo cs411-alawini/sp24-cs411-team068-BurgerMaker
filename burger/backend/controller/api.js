@@ -1,11 +1,20 @@
 const express = require('express');
 const db = require('../db/connection');
-const externalApi = require('./external/api')
 
 const router = express.Router();
 
-const listAssets = externalApi.listAssets;
 
+// trade
+// router.post('/trade', (req, res) => {
+//     const { name, age } = req.body;
+
+//     pool.query('INSERT INTO Trade VALUES (?,?,?,?,?,?)', [name, age], (error, results) => {
+//         if (error) {
+//             return res.status(500).json({ error: error.message });
+//         }
+//         res.status(200).json({ message: 'Data inserted successfully', insertId: results.insertId });
+//     });
+// });
 mock = {
     tradeValue: {
         value: 10000
@@ -39,40 +48,35 @@ mock = {
     postLike: {
         value: 50
     }
-};
-
+}
 router.get('/trade/value', async (req, res) => {
-    const q = `
-        SELECT asset_id,hold_quantity 
-        FROM Portfolio P JOIN Hold H 
-        ON P.id=H.portfolio_id
-        WHERE P.user_id = ?
-    `;
-    db.getConnection((err, connection) => {
-        if (err) {
-            return res.status(500).json({message: 'Internal server error getting database connection'});
-        } else {
-            connection.query(q, [req.user], async (err, results) => {
-                connection.release(); // Release the connection back to the pool
-
-                if (err) {
-                    return res.status(500).json({message: 'Error querying database'});
-                } else {
-                    const asset2quantity = {};
-                    results.forEach(data => {
-                        asset2quantity[data.asset_id] = data.hold_quantity;
-                    });
-                    const assetsInfo = await listAssets(Object.keys(asset2quantity));
-                    // console.log(assetsInfo)
-                    let value = 0;
-                    assetsInfo.forEach(info => {
-                        value += info.price_usd * asset2quantity[info.asset_id];
-                    });
-                    res.json({value: value});
-                }
-            })
-        }
-    })
+    /*
+        params: userId, portfolioId, startTime, endTime
+    */
+    const params = req.query;
+    return res.json(mock.tradeValue)
+    // if (params.userId !== undefined) {
+    //     const q = `
+    //         SELECT SUM(quantity*price)
+    //         FROM Trade T JOIN (SELECT * FROM Portfolio WHERE user_id=userId) P ON T.portfolio_id=P.id
+    //         WHERE time>=start_time AND time<=end_time
+    //     `
+    // }
+    // db.getConnection((err, connection) => {
+    //     if (err) {
+    //         res.status(500).json({ message: 'Internal server error' });
+    //     } else {
+    //         connection.query('SELECT * FROM Trade WHERE id = ?', [tradeId], (error, results) => {
+    //             connection.release();
+    //             if (error) {
+    //                 res.status(500).json({ message: 'Failed to query trade data' });
+    //             } else {
+    //                 res.json(results);
+    //                 console.log(results);
+    //             }
+    //         });
+    //     }
+    // });
 });
 
 router.get('/trade', async (req, res) => {
@@ -116,7 +120,7 @@ router.get('/user', async (req, res) => {
     }
 });
 
-router.get('/holds', (req, res) => {
+router.get('/cost-info-of-user', (req, res) => {
     // 这里可以使用 req.params.userid 来处理不同用户的请求，现在我们返回固定数据
     // res.json(holdings);
     const userId = req.user;
@@ -125,14 +129,14 @@ router.get('/holds', (req, res) => {
 
     db.getConnection((err, connection) => {
         if (err) {
-            res.status(500).json({message: 'Internal server error'});
+            res.status(500).json({ message: 'Internal server error' });
             return;
         }
 
         connection.query(query, [userId], (err, results) => {
             connection.release();
             if (err) {
-                res.status(500).json({message: 'Internal server error'});
+                res.status(500).json({ message: 'Internal server error' });
             } else {
                 // 使用 map 方法来重新格式化每个条目
                 const formattedResults = results[0].map(row => ({
@@ -158,11 +162,11 @@ router.get('/portfolio', (req, res) => {
     `;
     db.getConnection((err, connection) => {
         if (err) {
-            res.status(500).json({message: 'Internal server error'});
+            res.status(500).json({ message: 'Internal server error' });
         } else {
             connection.query(query, [userId], (err, rows) => {
                 if (err) {
-                    res.status(500).json({message: 'Internal server error'});
+                    res.status(500).json({ message: 'Internal server error' });
                 } else {
                     res.json(rows);
                 }
@@ -180,11 +184,33 @@ router.get('/:portfolioid/trade', (req, res) => {
     `;
     db.getConnection((err, connection) => {
         if (err) {
-            res.status(500).json({message: 'Internal server error'});
+            res.status(500).json({ message: 'Internal server error' });
         } else {
             connection.query(query, [portfolioId], (err, rows) => {
                 if (err) {
-                    res.status(500).json({message: 'Internal server error'});
+                    res.status(500).json({ message: 'Internal server error' });
+                } else {
+                    res.json(rows);
+                }
+            });
+        }
+    });
+});
+
+router.get('/:portfolioid/holds', (req, res) => {
+    const portfolioId = req.params.portfolioid;
+    const query = `
+      SELECT *
+      FROM Hold
+      WHERE portfolio_id = ?;
+    `;
+    db.getConnection((err, connection) => {
+        if (err) {
+            res.status(500).json({ message: 'Internal server error' });
+        } else {
+            connection.query(query, [portfolioId], (err, rows) => {
+                if (err) {
+                    res.status(500).json({ message: 'Internal server error' });
                 } else {
                     res.json(rows);
                 }
@@ -202,14 +228,14 @@ router.get('/portfolio-status', (req, res) => {
 
     db.getConnection((err, connection) => {
         if (err) {
-            res.status(500).json({message: 'Internal server error'});
+            res.status(500).json({ message: 'Internal server error' });
             return;
         }
 
         connection.query(query, [userId], (err, results) => {
             connection.release();
             if (err) {
-                res.status(500).json({message: 'Internal server error'});
+                res.status(500).json({ message: 'Internal server error' });
             } else {
                 // Typically, the result of a stored procedure is nested inside an array.
                 res.json(results[0]);
