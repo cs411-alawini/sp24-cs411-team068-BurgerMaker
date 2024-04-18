@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { PlusOutlined, ShoppingCartOutlined, DollarOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
-import { useRequest } from '@umijs/max';
 import { Button, Card, List, Select, Flex, Typography, Modal, Input } from 'antd';
 import type { CardListItemDataType } from './data.d';
 import { queryFakeList, queryDetails } from './service';
@@ -10,11 +9,14 @@ const { Paragraph } = Typography;
 
 const CardList = () => {
   const { styles } = useStyles();
-  const { data, loading } = useRequest(() => {
-    return queryFakeList();
-  });
-  const list = data?.list || [];
 
+  // const [data, setData] = useState<CardListItemDataType[]>([]);
+  // const [loading, setLoading] = useState<boolean>(true);
+  // queryDetails().then((res) => {
+  //   setData(res);
+  //   setLoading(false);
+  // });
+  
   const content = (
     <div className={styles.pageHeaderContent}>
       <p>
@@ -74,7 +76,7 @@ const CardList = () => {
           rowKey="id"
           loading={loading}
           grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 3, xl: 4, xxl: 5 }}
-          dataSource={list}
+          dataSource={data}
           renderItem={item => (
             <List.Item key={item.id}>
               <Card

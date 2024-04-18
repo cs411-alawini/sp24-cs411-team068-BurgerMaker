@@ -44,6 +44,22 @@ router.get('/user', async (req, res) => {
     });
 });
 
+router.get('/crypto', async (req, res) => {
+    db.getConnection((err, connection) => {
+        if (err) {
+            res.status(500).json({ message: 'Internal server error' });
+        } else {
+            connection.query('SELECT * FROM Asset', (err, rows) => {
+                if (err) {
+                    res.status(500).json({ message: 'Internal server error' });
+                } else {
+                    res.json(rows);
+                }
+            });
+        }
+    });
+});
+
 // CREATE TABLE IF NOT EXISTS User(
 //     id VARCHAR(64) PRIMARY KEY,
 //     name VARCHAR(256),

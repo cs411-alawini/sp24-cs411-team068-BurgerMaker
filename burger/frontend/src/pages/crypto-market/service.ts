@@ -12,7 +12,7 @@ export async function queryFakeList(params: {
 export async function queryDetails() {
   try {
     // Fetch the initial list of crypto data
-    const results = await queryFakeList({ count: 6 });
+    const results = await queryFakeList();
     const crypto_list = results.data.list;
 
     // Prepare the request config
@@ -21,7 +21,7 @@ export async function queryDetails() {
       url: 'https://rest.coinapi.io/v1/assets/',
       headers: { 
         'Accept': 'text/plain', 
-        'X-CoinAPI-Key': 'E2BD8A35-0C3F-4A37-B47B-C286049DB887'
+        'X-CoinAPI-Key': process.env.COIN_API_KEY
       }
     };
 
@@ -42,6 +42,7 @@ export async function queryDetails() {
         description: '',
         status: 'normal',
         price: asset.price_usd,
+        change: crypto.change,
         id_icon: asset.id_icon,
         updatedAt: asset.data_end,
         createdAt: asset.data_start,
@@ -49,8 +50,7 @@ export async function queryDetails() {
         content: '',
       };
     });
-    console.log('list:', list);
-    return list
+    return list;
   } catch (error) {
     console.error('Error in queryDetails:', error);
     throw error;
