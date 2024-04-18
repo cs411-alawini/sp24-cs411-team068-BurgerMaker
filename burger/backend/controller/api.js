@@ -76,7 +76,26 @@ router.get('/trade/value', async (req, res) => {
 });
 
 router.get('/trade', async (req, res) => {
-    return res.json(mock.tradeData);
+    const q = `
+        SELECT T.id id, T.time time, A.name asset_name, T.quantity quantity, T.price price, P.name portfolio_name 
+        FROM Trade T JOIN (SELECT * FROM Portfolio WHERE user_id = ?) P ON T.portfolio_id = P.id JOIN Asset A ON A.id=T.asset_id
+        ORDER BY time DESC
+    `;
+    db.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).json({message: 'Internal server error getting database connection'});
+        } else {
+            connection.query(q, [req.user], (err, results) => {
+                connection.release(); // Release the connection back to the pool
+                if (err) {
+                    return res.status(500).json({message: 'Error querying database'});
+                } else {
+                    // console.log(results)
+                    res.json(results);
+                }
+            })
+        }
+    })
 });
 
 router.get('/post/like', async (req, res) => {
