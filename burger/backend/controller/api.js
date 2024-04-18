@@ -6,41 +6,6 @@ const router = express.Router();
 
 const listAssets = externalApi.listAssets;
 
-mock = {
-    tradeValue: {
-        value: 10000
-    },
-    tradeData: [
-        {
-            id: '1',
-            time: '2021-07-01 12:00:00',
-            asset_name: 'BTC',
-            quantity: 100,
-            price: 100,
-            portfolio_name: 'xxx'
-        },
-        {
-            id: '2',
-            time: '2021-07-02 12:00:00',
-            asset_name: 'BTC',
-            quantity: 200,
-            price: 80,
-            portfolio_name: 'xxy'
-        },
-        {
-            id: '3',
-            time: '2021-07-03 12:00:00',
-            asset_name: 'BTC',
-            quantity: -300,
-            price: 200,
-            portfolio_name: 'xxx'
-        }
-    ],
-    postLike: {
-        value: 50
-    }
-};
-
 router.get('/trade/value', async (req, res) => {
     const q = `
         SELECT asset_id,hold_quantity 
@@ -99,7 +64,59 @@ router.get('/trade', async (req, res) => {
 });
 
 router.get('/post/like', async (req, res) => {
-    return res.json(mock.postLike);
+    const q = `
+        SELECT SUM(thumbs_up_num) cnt FROM Post
+        WHERE user_id = ?
+    `;
+    db.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).json({message: 'Internal server error getting database connection'});
+        } else {
+            connection.query(q, [req.user], (err, results) => {
+                connection.release(); // Release the connection back to the pool
+
+                if (err) {
+                    return res.status(500).json({message: 'Error querying database'});
+                } else {
+                    // Map the results to the desired format
+                    if (results.length !== 1) {
+                        return res.status(401).json({message: 'Not returned single row'});
+                    } else {
+                        // console.log(results[0]['cnt'])
+                        res.json({value: results[0]['cnt']});
+                    }
+                }
+            })
+        }
+    })
+});
+
+router.get('/post/count', async (req, res) => {
+    const q = `
+        SELECT COUNT(*) cnt FROM Post
+        WHERE user_id = ?
+    `;
+    db.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).json({message: 'Internal server error getting database connection'});
+        } else {
+            connection.query(q, [req.user], (err, results) => {
+                connection.release(); // Release the connection back to the pool
+
+                if (err) {
+                    return res.status(500).json({message: 'Error querying database'});
+                } else {
+                    // Map the results to the desired format
+                    if (results.length !== 1) {
+                        return res.status(401).json({message: 'Not returned single row'});
+                    } else {
+                        // console.log(results[0]['cnt'])
+                        res.json({value: results[0]['cnt']});
+                    }
+                }
+            })
+        }
+    })
 });
 
 router.get('/user', async (req, res) => {

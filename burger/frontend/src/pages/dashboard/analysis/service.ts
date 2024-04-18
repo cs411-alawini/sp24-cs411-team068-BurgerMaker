@@ -16,6 +16,13 @@ export async function getPostLike(options?: { [key: string]: any }) {
   })
 }
 
+export async function getPostCount(options?: { [key: string]: any }) {
+  return request('/api/post/count', {
+    method: 'GET',
+    ...(options || {}),
+  })
+}
+
 export async function getTrade(options?: { [key: string]: any }) {
   return request('/api/trade', {
     method: 'GET',
