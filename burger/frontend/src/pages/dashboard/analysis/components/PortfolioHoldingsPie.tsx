@@ -1,7 +1,7 @@
 import {Pie} from '@ant-design/plots';
 import {Card} from 'antd';
 import {useEffect, useState} from 'react';
-import {getHold} from "@/pages/dashboard/analysis/service";
+import {getTotalCostOfUser} from "@/pages/dashboard/analysis/service";
 // const { Text } = Typography;
 
 const PortfolioHoldingsPie = ({userId}) => {
@@ -12,7 +12,7 @@ const PortfolioHoldingsPie = ({userId}) => {
     const fetchHoldingsData = async () => {
       setLoading(true);
       try {
-        const response = await getHold();
+        const response = await getTotalCostOfUser();
         // 转换数据以适应饼图
         const formattedData = response.map((item) => ({
           type: item.portfolio_name,

@@ -8,7 +8,7 @@ import useStyles from '../style.style';
 import Yuan from '../utils/Yuan';
 import { ChartCard, Field } from './Charts';
 import Trend from './Trend';
-import {getMarketValue, getPostLike} from '../service';
+import {getMarketValue, getPostLike, getPostCount} from '../service';
 const topColResponsiveProps = {
   xs: 24,
   sm: 12,
@@ -24,7 +24,8 @@ const IntroduceRow = () => {
 
   const [marketValue, setMarketValue] = useState(0);
   const [postLikeSum, setPostLikeSum] = useState(0);
-  const [loading, setLoading] = useState({ marketValue: true, postLikeSum: true });
+  const [postCount, setPostCount] = useState(0);
+  const [loading, setLoading] = useState({marketValue: true, postLikeSum: true});
 
   const fetchMarketValue = async () => {
     setLoading(prev => ({ ...prev, marketValue: true }));
@@ -37,18 +38,30 @@ const IntroduceRow = () => {
   };
 
   const fetchLikeSum = async () => {
-    setLoading(prev => ({ ...prev, postLikeSum: true }));
+    setLoading(prev => ({...prev, postLikeSum: true}));
     try {
       const response = await getPostLike();
       setPostLikeSum(response.value);
     } finally {
-      setLoading(prev => ({ ...prev, postLikeSum: false }));
+      setLoading(prev => ({...prev, postLikeSum: false}));
     }
   };
+
+  const fetchPostCount = async () => {
+    setLoading(prev => ({...prev, postLikeSum: true}));
+    try {
+      const response = await getPostCount();
+      setPostCount(response.value);
+    } finally {
+      setLoading(prev => ({...prev, postLikeSum: false}));
+    }
+  };
+
   useEffect(() => {
     fetchMarketValue();
     fetchLikeSum();
-  },[]);
+    fetchPostCount();
+  }, []);
 
   return (
     <Row gutter={24}>
@@ -123,7 +136,7 @@ const IntroduceRow = () => {
             </Tooltip>
           }
           total={numeral(postLikeSum).format('0,0')}
-          footer={<Field label="Likes per posts" value="5" />}
+          footer={<Field label="Likes per posts" value={postLikeSum / postCount}/>}
           contentHeight={46}
         >
           <Column

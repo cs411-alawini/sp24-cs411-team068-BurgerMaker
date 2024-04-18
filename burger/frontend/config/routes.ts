@@ -58,17 +58,22 @@ export default [
         path: '/dashboard/analysis',
         component: './dashboard/analysis',
       },
+    ],
+  },
+  {
+    name: 'account',
+    icon: 'user',
+    path: '/account',
+    routes: [
       {
-        name: 'settings',  // 添加的路由配置
-        icon: 'smile',
-        path: '/dashboard/monitor',
-        component: './dashboard/monitor',
+        path: '/account',
+        redirect: '/account/center',
       },
       {
-        name: 'workplace',
+        name: 'settings',
         icon: 'smile',
-        path: '/dashboard/workplace',
-        component: './dashboard/workplace',
+        path: '/account/settings',
+        component: './account/settings',
       },
     ],
   },
