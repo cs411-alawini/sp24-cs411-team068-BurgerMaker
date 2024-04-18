@@ -2,6 +2,7 @@ import React from 'react';
 import { Button, Form, Input, message } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import type { FC } from 'react';
+import { doPublish } from './service';
 
 const Publish: FC = () => {
   const [form] = Form.useForm();
@@ -9,17 +10,10 @@ const Publish: FC = () => {
   const handleSubmit = async (values: any) => {
     console.log('Received values of form:', values);
     try {
-      const response = await fetch('http://localhost:29979/test/post/publish', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(values),
-      });
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const result = await response.json();
+      const response = await doPublish(values)
+      // if (!response.ok) {
+      //   throw new Error('Network response was not ok');
+      // }
       message.success('Post published successfully!');
     } catch (error) {
       message.error('Failed to publish the post.');
