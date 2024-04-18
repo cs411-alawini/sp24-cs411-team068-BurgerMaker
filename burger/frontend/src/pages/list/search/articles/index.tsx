@@ -4,6 +4,7 @@ import { Button, Card, Form, Input, List, Pagination } from 'antd';
 import type { FC } from 'react';
 import ArticleListContent from './components/ArticleListContent';
 import useStyles from './style.style';
+import { getPostList, doStar } from './service';
 
 const pageSize = 10;
 
@@ -22,40 +23,57 @@ const Articles: FC = () => {
   const getPosts = async (search = '', page = 1, pageSize = 10) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:29979/test/list_real2?search=${encodeURIComponent(search)}&count=${pageSize}&page=${page}`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const json = await response.json();
-      setPosts(json.posts);
-      setTotalItems(json.total);
+      const params = {search: search, pageSize: pageSize, page: page};
+      const response = await getPostList(params);
+      // const response = await getPostList(search, pageSize, page);
+      // if (!response.ok) {
+      //   throw new Error('Network response was not ok');
+      // }
+      // const json = await response.json();
+      setPosts(response.posts);
+      setTotalItems(response.total);
     } catch (error) {
       console.error('Failed to fetch data:', error);
     }
     setLoading(false);
   };
 
+  // const starPost = async (postId) => {
+  //   try {
+  //     const response = await fetch('http://localhost:29979/api/star_post', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({ postId }),
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error('Network response was not ok');
+  //     }
+
+  //     // Fetch posts again to update the UI
+  //     getPosts(searchText, currentPage);
+  //     console.log("postId:")
+  //     console.log(postId)
+  //   } catch (error) {
+  //     console.error('Failed to star post:', error);
+  //   }
+  // };
+
   const starPost = async (postId) => {
+    console.log('Received values of form:', postId);
     try {
-      const response = await fetch('http://localhost:29979/test/star_post', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ postId }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      // Fetch posts again to update the UI
-      getPosts(searchText, currentPage);
-      console.log("postId:")
-      console.log(postId)
+      const params = {postId: postId}
+      const response = await doStar(params)
+      // if (!response.ok) {
+      //   throw new Error('Network response was not ok');
+      // }
+      message.success('Thank you for your like!');
     } catch (error) {
-      console.error('Failed to star post:', error);
+      console.error('Failed to like:', error);
     }
+    getPosts(searchText, currentPage);
   };
 
   // Effect to fetch posts when searchText changes
