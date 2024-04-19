@@ -1,14 +1,16 @@
-import { InfoCircleOutlined } from '@ant-design/icons';
-import { Area, Column } from '@ant-design/plots';
-import { Col, Progress, Row, Tooltip } from 'antd';
-import { Suspense, useState, useEffect } from 'react';
+import {InfoCircleOutlined} from '@ant-design/icons';
+import {Area, Column} from '@ant-design/plots';
+import {Col, Progress, Row, Tooltip} from 'antd';
+import {Suspense, useState, useEffect, useMemo} from 'react';
 import numeral from 'numeral';
-import type { DataItem } from '../data.d';
+import type {DataItem} from '../data.d';
 import useStyles from '../style.style';
 import Yuan from '../utils/Yuan';
-import { ChartCard, Field } from './Charts';
+import {ChartCard, Field} from './Charts';
 import Trend from './Trend';
-import {getMarketValue, getPostLike, getPostCount} from '../service';
+import {getMarketValue, getPostLike, getPostCount, getOldMarketValue} from '../service';
+import {formatDate} from '@/utils/helper'
+
 const topColResponsiveProps = {
   xs: 24,
   sm: 12,
@@ -20,47 +22,81 @@ const topColResponsiveProps = {
   },
 };
 const IntroduceRow = () => {
-  const { styles } = useStyles();
+  const {styles} = useStyles();
 
   const [marketValue, setMarketValue] = useState(0);
+  const [oldMarketValue, setOldMarketValue] = useState({});
   const [postLikeSum, setPostLikeSum] = useState(0);
   const [postCount, setPostCount] = useState(0);
-  const [loading, setLoading] = useState({marketValue: true, postLikeSum: true});
+  const [loading, setLoading] = useState(true);
 
-  const fetchMarketValue = async () => {
-    setLoading(prev => ({ ...prev, marketValue: true }));
+
+  const fetchData = async () => {
+    // setLoading(prev => ({...prev, oldMarketValue: true}));
+    setLoading(true);
     try {
+      // market value
       const response = await getMarketValue();
       setMarketValue(response.value);
+
+      // old market value
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const sevenDaysAgo = new Date(new Date(today).setDate(today.getDate() - 7));
+      const oneMonthAgo = new Date(new Date(today).setMonth(today.getMonth() - 1));
+
+      const dateOptions = {
+        today: formatDate(today),
+        weekAgo: formatDate(sevenDaysAgo),
+        monthAgo: formatDate(oneMonthAgo)
+      };
+      let tmp = {};
+      for (const [t, dt] of Object.entries(dateOptions)) {
+        const val = await getOldMarketValue(dt);
+        tmp = {...tmp, [t]: val}
+      }
+      // console.log(tmp)
+      setOldMarketValue(tmp);
+
+      // likes
+      const likeResponse = await getPostLike();
+      setPostLikeSum(likeResponse.value);
+
+      // post count
+      const cntResponse = await getPostCount();
+      setPostCount(cntResponse.value);
     } finally {
-      setLoading(prev => ({ ...prev, marketValue: false }));
+      setLoading(false);
     }
   };
 
-  const fetchLikeSum = async () => {
-    setLoading(prev => ({...prev, postLikeSum: true}));
-    try {
-      const response = await getPostLike();
-      setPostLikeSum(response.value);
-    } finally {
-      setLoading(prev => ({...prev, postLikeSum: false}));
-    }
-  };
+  console.log(loading, oldMarketValue)
+  const todayProfit = useMemo(() => {
+    if (oldMarketValue?.today?.value > 0)
+      return numeral((marketValue - oldMarketValue.today.value) || 0).format('0,0.00');
+    return '0'
+  }, [marketValue, oldMarketValue]);
 
-  const fetchPostCount = async () => {
-    setLoading(prev => ({...prev, postLikeSum: true}));
-    try {
-      const response = await getPostCount();
-      setPostCount(response.value);
-    } finally {
-      setLoading(prev => ({...prev, postLikeSum: false}));
-    }
-  };
+  const todayPct = useMemo(() => {
+    if (oldMarketValue?.today?.value > 0)
+      return numeral((marketValue - oldMarketValue?.today?.value) / oldMarketValue?.today?.value).format('0.00%')
+    return '0%'
+  }, [marketValue, oldMarketValue]);
+
+  const weekPct = useMemo(() => {
+    if (oldMarketValue?.weekAgo?.value > 0)
+      return numeral((marketValue - oldMarketValue?.weekAgo?.value) / oldMarketValue?.weekAgo?.value).format('0,0.00')
+    return '0'
+  }, [marketValue, oldMarketValue]);
+
+  const monthPct = useMemo(() => {
+    if (oldMarketValue?.monthAgo?.value > 0)
+      return numeral((marketValue - oldMarketValue?.monthAgo?.value) / oldMarketValue?.monthAgo?.value).format('0,0.00')
+    return '0'
+  }, [marketValue, oldMarketValue])
 
   useEffect(() => {
-    fetchMarketValue();
-    fetchLikeSum();
-    fetchPostCount();
+    fetchData();
   }, []);
 
   return (
@@ -71,26 +107,34 @@ const IntroduceRow = () => {
           title="Current Market Value"
           action={
             <Tooltip title="Total amount of money in the account">
-              <InfoCircleOutlined />
+              <InfoCircleOutlined/>
             </Tooltip>
           }
-          loading={loading.marketValue}
+          // loading={loading.marketValue || loading.oldMarketValue}
+          loading={loading}
           total={() => <Yuan>{marketValue}</Yuan>}
-          footer={<Field label="Profit today" value={`$${numeral(1001).format('0,0')}`} />}
+          footer={<Field label="Profit today"
+                         value={`$${todayProfit}  (${todayPct})`}/>}
           contentHeight={46}
         >
           <Trend
-            flag="up"
+            flag={weekPct > 0 ? "up" : "down"}
             style={{
               marginRight: 16,
             }}
           >
             Weekly
-            <span className={styles.trendText}>1001%</span>
+            <span
+              className={styles.trendText}>
+              {weekPct}%
+            </span>
           </Trend>
-          <Trend flag="down">
-            Daily
-            <span className={styles.trendText}>1001%</span>
+          <Trend flag={monthPct >= 0 ? "up" : "down"}>
+            Monthly
+            <span
+              className={styles.trendText}>
+              {monthPct}%
+            </span>
           </Trend>
         </ChartCard>
       </Col>
@@ -128,11 +172,12 @@ const IntroduceRow = () => {
       <Col {...topColResponsiveProps}>
         <ChartCard
           bordered={false}
-          loading={loading.postLikeSum}
+          // loading={loading.postLikeSum}
+          loading={loading}
           title="Post Likes"
           action={
             <Tooltip title="Num of likes received in all your posts">
-              <InfoCircleOutlined />
+              <InfoCircleOutlined/>
             </Tooltip>
           }
           total={numeral(postLikeSum).format('0,0')}
@@ -146,7 +191,7 @@ const IntroduceRow = () => {
             axis={false}
             height={46}
             // data={visitData}
-            scale={{ x: { paddingInner: 0.4 } }}
+            scale={{x: {paddingInner: 0.4}}}
           />
         </ChartCard>
       </Col>

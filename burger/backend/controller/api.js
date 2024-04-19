@@ -3,8 +3,7 @@ const db = require('../db/connection');
 const externalApi = require('./external/api')
 
 const router = express.Router();
-
-const listAssets = externalApi.listAssets;
+const {listAssets, getAssetRate} = externalApi;
 
 router.get('/trade/value', async (req, res) => {
     const q = `
@@ -27,6 +26,7 @@ router.get('/trade/value', async (req, res) => {
                     results.forEach(data => {
                         asset2quantity[data.asset_id] = data.hold_quantity;
                     });
+                    console.log(asset2quantity)
                     const assetsInfo = await listAssets(Object.keys(asset2quantity));
                     // console.log(assetsInfo)
                     let value = 0;
@@ -62,6 +62,37 @@ router.get('/trade', async (req, res) => {
         }
     })
 });
+
+router.get('/trade/value/:endtime', async (req, res) => {
+    const endtime = req.params.endtime;
+    const q = `
+        SELECT asset_id, SUM(quantity) quantity
+        FROM Trade T JOIN (SELECT * FROM Portfolio WHERE user_id = ?) P ON T.portfolio_id = P.id
+        WHERE time < ?
+        GROUP BY asset_id
+    `;
+    db.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).json({message: 'Internal server error getting database connection'});
+        } else {
+            connection.query(q, [req.user, endtime], async (err, results) => {
+                connection.release(); // Release the connection back to the pool
+                if (err) {
+                    return res.status(500).json({message: 'Error querying database'});
+                } else {
+                    let value = 0;
+                    for (const data of results) {
+                        const rate = (await getAssetRate(data.asset_id, endtime)).rate;
+                        console.log(data, rate)
+                        value += rate * data.quantity;
+                        break
+                    }
+                    res.json({time: endtime, value: value});
+                }
+            })
+        }
+    })
+})
 
 router.get('/post/like', async (req, res) => {
     const q = `
