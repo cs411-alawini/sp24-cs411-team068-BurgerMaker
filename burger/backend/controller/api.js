@@ -269,6 +269,36 @@ router.get('/user', async (req, res) => {
     }
 });
 
+router.get('/balance', (req, res) => {
+    const userId = req.user;
+    const q = `
+        SELECT balance cnt FROM User
+        WHERE id = ?
+    `;
+    db.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).json({message: 'Internal server error getting database connection'});
+        } else {
+            connection.query(q, [req.user], (err, results) => {
+                connection.release(); // Release the connection back to the pool
+
+                if (err) {
+                    return res.status(500).json({message: 'Error querying database'});
+                } else {
+                    // Map the results to the desired format
+                    if (results.length !== 1) {
+                        return res.status(401).json({message: 'Not returned single row'});
+                    } else {
+                        // console.log(results[0]['cnt'])
+                        res.json({value: results[0]['cnt']});
+                    }
+                }
+            })
+        }
+    })
+
+})
+
 router.get('/cost-info-of-user', (req, res) => {
     // 这里可以使用 req.params.userid 来处理不同用户的请求，现在我们返回固定数据
     // res.json(holdings);
@@ -592,6 +622,8 @@ router.post('/star_post', async (req, res) => {
         }
     });
 });
+
+
 
 
 

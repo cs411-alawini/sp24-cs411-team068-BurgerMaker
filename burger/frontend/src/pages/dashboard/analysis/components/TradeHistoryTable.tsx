@@ -1,5 +1,5 @@
 import React from 'react';
-import {Table} from 'antd';
+import {Table, Tooltip} from 'antd';
 import type {TableColumnsType} from 'antd';
 import {useState, useEffect, useMemo} from 'react';
 import moment from 'moment';
@@ -26,8 +26,12 @@ const TradeHistoryTable = () => {
         setLoading(true);
         try {
           const response = await getTrade();
-          console.log(response);
-          setData(response);
+          // console.log(response);
+          const dataWithSerialId = response.map((item, index) => ({
+            ...item,
+            serialId: index + 1  // Starting from 1 for better readability
+          }));
+          setData(dataWithSerialId);
         } catch (error) {
             console.error('Failed to fetch data:', error);
         } finally {
@@ -49,10 +53,20 @@ const TradeHistoryTable = () => {
 
   const columns: TableColumnsType<DataType> = [
     {
-      title: 'Trade ID',
-      dataIndex: 'id',
-      showSorterTooltip: {target: 'full-header'},
+      title: 'ID',
+      dataIndex: 'serialId',
+      key: 'serialId',
+      render: (text, record) => (
+        <Tooltip title={`Real ID: ${record.id}`}>
+          {text}
+        </Tooltip>
+      ),
     },
+    // {
+    //   title: 'Trade ID',
+    //   dataIndex: 'id',
+    //   showSorterTooltip: {target: 'full-header'},
+    // },
     {
       title: 'Portfolio',
       dataIndex: 'portfolio_name', // name not id

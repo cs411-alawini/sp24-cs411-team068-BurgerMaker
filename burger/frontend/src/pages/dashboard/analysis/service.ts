@@ -30,6 +30,13 @@ export async function getPostCount(options?: { [key: string]: any }) {
   })
 }
 
+export async function getBalance(options?: { [key: string]: any }) {
+  return request('/api/balance', {
+    method: 'GET',
+    ...(options || {}),
+  })
+}
+
 export async function getTrade(options?: { [key: string]: any }) {
   return request('/api/trade', {
     method: 'GET',

@@ -8,7 +8,7 @@ import useStyles from '../style.style';
 import Yuan from '../utils/Yuan';
 import {ChartCard, Field} from './Charts';
 import Trend from './Trend';
-import {getMarketValue, getPostLike, getPostCount, getOldMarketValue} from '../service';
+import {getMarketValue, getPostLike, getPostCount, getOldMarketValue, getBalance} from '../service';
 import {formatDate} from '@/utils/helper'
 
 const topColResponsiveProps = {
@@ -29,6 +29,7 @@ const IntroduceRow = () => {
   const [postLikeSum, setPostLikeSum] = useState(0);
   const [postCount, setPostCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [balance, setBalance] = useState(0);
 
 
   const fetchData = async () => {
@@ -61,6 +62,10 @@ const IntroduceRow = () => {
       // likes
       const likeResponse = await getPostLike();
       setPostLikeSum(likeResponse.value);
+
+      const balanceResponse = await getBalance();
+      // console.log(balanceResponse.value);
+      setBalance(parseFloat(balanceResponse.value).toFixed(3));
 
       // post count
       const cntResponse = await getPostCount();
@@ -144,13 +149,13 @@ const IntroduceRow = () => {
         <ChartCard
           bordered={false}
           loading={loading}
-          title="Key Metrics"
+          title="Current Balance"
           action={
             <Tooltip title="Key financial indicators">
               <InfoCircleOutlined/>
             </Tooltip>
           }
-          total={<div>{`$${todayProfit}`}</div>}
+          total={<div>{`$${balance}`}</div>}
           footer={
             <div>
               Weekly Growth: <span></span>
@@ -185,7 +190,7 @@ const IntroduceRow = () => {
             </Tooltip>
           }
           total={numeral(postLikeSum).format('0,0')}
-          footer={<Field label="Likes per posts" value={(postLikeSum / postCount).toFixed(2)}/>}
+          footer={<Field label="Gains per post" value={(postLikeSum / postCount).toFixed(2)}/>}
           contentHeight={46}
         >
           <Column
