@@ -9,6 +9,13 @@ export async function getMarketValue(options?: { [key: string]: any }) {
   })
 }
 
+export async function getOldMarketValue(endTime: string, options?: { [key: string]: any }) {
+  return request(`/api/trade/value/${endTime}`, {
+    method: 'GET',
+    ...(options || {}),
+  })
+}
+
 export async function getPostLike(options?: { [key: string]: any }) {
   return request('/api/post/like', {
     method: 'GET',
@@ -40,7 +47,7 @@ export async function fetchPortfolios(options?: { [key: string]: any }) {
   )
 }
 
-export async function fetchPortfoliosStatusAndCost( options?: { [key: string]: any }) {
+export async function fetchPortfoliosStatusAndCost(options?: { [key: string]: any }) {
   return request(
     `/api/portfolio-status`,
     {

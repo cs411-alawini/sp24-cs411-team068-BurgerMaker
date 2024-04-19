@@ -3,8 +3,7 @@ const db = require('../db/connection');
 const externalApi = require('./external/api')
 
 const router = express.Router();
-
-const listAssets = externalApi.listAssets;
+const {listAssets, getAssetRate} = externalApi;
 
 router.get('/trade/value', async (req, res) => {
     const q = `
@@ -27,6 +26,7 @@ router.get('/trade/value', async (req, res) => {
                     results.forEach(data => {
                         asset2quantity[data.asset_id] = data.hold_quantity;
                     });
+                    console.log(asset2quantity)
                     const assetsInfo = await listAssets(Object.keys(asset2quantity));
                     // console.log(assetsInfo)
                     let value = 0;
@@ -62,6 +62,37 @@ router.get('/trade', async (req, res) => {
         }
     })
 });
+
+router.get('/trade/value/:endtime', async (req, res) => {
+    const endtime = req.params.endtime;
+    const q = `
+        SELECT asset_id, SUM(quantity) quantity
+        FROM Trade T JOIN (SELECT * FROM Portfolio WHERE user_id = ?) P ON T.portfolio_id = P.id
+        WHERE time < ?
+        GROUP BY asset_id
+    `;
+    db.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).json({message: 'Internal server error getting database connection'});
+        } else {
+            connection.query(q, [req.user, endtime], async (err, results) => {
+                connection.release(); // Release the connection back to the pool
+                if (err) {
+                    return res.status(500).json({message: 'Error querying database'});
+                } else {
+                    let value = 0;
+                    for (const data of results) {
+                        const rate = (await getAssetRate(data.asset_id, endtime)).rate;
+                        console.log(data, rate)
+                        value += rate * data.quantity;
+                        break
+                    }
+                    res.json({time: endtime, value: value});
+                }
+            })
+        }
+    })
+})
 
 router.get('/post/like', async (req, res) => {
     const q = `
@@ -316,8 +347,11 @@ router.get('/list_real2', async (req, res) => {
     // Parse the count and page from the query, default to 10 and page 1 if not provided
     const count = parseInt(req.query.count) || 10;
     const page = parseInt(req.query.page) || 1;
+    const { all } = req.query;
+    // const all = false
     // Retrieve the search parameter from the query string
     const { search } = req.query;
+    const user_id = req.user;
 
     db.getConnection((err, connection) => {
         if (err) {
@@ -335,6 +369,15 @@ router.get('/list_real2', async (req, res) => {
             if (search) {
                 countQuery += ' WHERE p.title LIKE ? OR p.description LIKE ?';
                 countParams.push(`%${search}%`, `%${search}%`);
+            }
+
+            if (all === "false") {
+                if (countQuery.includes('WHERE')) {
+                    countQuery += ' AND p.user_id = ?';
+                } else {
+                    countQuery += ' WHERE p.user_id = ?';
+                }
+                countParams.push(`${user_id}`);
             }
 
             connection.query(countQuery, countParams, (err, countResults) => {
@@ -357,6 +400,15 @@ router.get('/list_real2', async (req, res) => {
                     if (search) {
                         dataQuery += ' WHERE p.title LIKE ? OR p.description LIKE ?';
                         dataParams.push(`%${search}%`, `%${search}%`);
+                    }
+
+                    if (all === "false") {
+                        if (dataQuery.includes('WHERE')) {
+                            dataQuery += ' AND p.user_id = ?';
+                        } else {
+                            dataQuery += ' WHERE p.user_id = ?';
+                        }
+                        dataParams.push(`${user_id}`);
                     }
 
                     dataQuery += ' ORDER BY p.create_time DESC LIMIT ? OFFSET ?';
@@ -395,8 +447,23 @@ router.get('/list_real2', async (req, res) => {
 
 
 // New route to handle increasing the star count
+// DELIMITER $$
+
+// CREATE TRIGGER IncreaseBurgerCoinAfterStar
+// AFTER UPDATE ON Post
+// FOR EACH ROW
+// BEGIN
+//     IF OLD.thumbs_up_num <> NEW.thumbs_up_num THEN
+//         UPDATE User
+//         SET burger_coin = burger_coin + 1
+//         WHERE id = NEW.user_id;
+//     END IF;
+// END$$
+
+// DELIMITER ;
 router.post('/star_post', async (req, res) => {
     const postId = req.body.postId;  // Ensure you have middleware to parse JSON bodies
+    const user_id = req.user; // Assuming `req.user` is set from authentication middleware
 
     if (!postId) {
         return res.status(400).json({ message: 'Post ID must be provided' });
@@ -406,20 +473,40 @@ router.post('/star_post', async (req, res) => {
         if (err) {
             return res.status(500).json({ message: 'Internal server error getting database connection' });
         } else {
-            const updateQuery = 'UPDATE Post SET thumbs_up_num = thumbs_up_num + 1 WHERE id = ?';
-
-            connection.query(updateQuery, [postId], (err, result) => {
-                connection.release();  // Always release the connection back to the pool
-
-                if (err || result.affectedRows === 0) {
-                    return res.status(500).json({ message: 'Error updating post star count' });
+            // First, check if the user trying to star the post is the owner of the post
+            connection.query('SELECT user_id FROM Post WHERE id = ?', [postId], (err, results) => {
+                if (err) {
+                    connection.release();
+                    return res.status(500).json({ message: 'Error querying the post owner' });
                 }
 
-                res.json({ message: 'Post starred successfully' });
+                if (results.length === 0) {
+                    connection.release();
+                    return res.status(404).json({ message: 'Post not found' });
+                }
+
+                const postOwnerId = results[0].user_id;
+                if (postOwnerId === user_id) {
+                    connection.release();
+                    return res.status(403).json({ message: 'You cannot star your own post' });
+                }
+
+                // Proceed to update the star count if the user is not the post owner
+                const updateQuery = 'UPDATE Post SET thumbs_up_num = thumbs_up_num + 1 WHERE id = ?';
+                connection.query(updateQuery, [postId], (err, result) => {
+                    connection.release();  // Always release the connection back to the pool
+
+                    if (err || result.affectedRows === 0) {
+                        return res.status(500).json({ message: 'Error updating post star count' });
+                    }
+
+                    res.json({ message: 'Post starred successfully! The owner will be awarded one burger coin' });
+                });
             });
         }
     });
 });
+
 
 
 module.exports = router;

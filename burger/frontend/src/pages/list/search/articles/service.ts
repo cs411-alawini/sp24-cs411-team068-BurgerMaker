@@ -11,7 +11,7 @@ export async function queryFakeList(
 }
 
 export async function getPostList(params: object, options?: { [key: string]: any }) {
-  return request(`/api/list_real2?search=${params?.search}&count=${params?.pageSize}&page=${params?.page}`, {
+  return request(`/api/list_real2?search=${params?.search}&count=${params?.pageSize}&page=${params?.page}&all=${params?.all}`, {
     method: 'GET',
     ...(options || {}),
   })
