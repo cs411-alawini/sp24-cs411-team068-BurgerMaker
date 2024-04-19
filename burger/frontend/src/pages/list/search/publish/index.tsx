@@ -22,7 +22,7 @@ const Publish: FC = () => {
     const getPosts = async (search = '', page = 1, pageSize = 10) => {
       setLoading(true);
       try {
-        const params = {search: search, pageSize: pageSize, page: page};
+        const params = {search: search, pageSize: pageSize, page: page, all:"false"};
         const response = await getPostList(params);
         // const response = await getPostList(search, pageSize, page);
         // if (!response.ok) {

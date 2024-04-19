@@ -347,8 +347,11 @@ router.get('/list_real2', async (req, res) => {
     // Parse the count and page from the query, default to 10 and page 1 if not provided
     const count = parseInt(req.query.count) || 10;
     const page = parseInt(req.query.page) || 1;
+    const { all } = req.query;
+    // const all = false
     // Retrieve the search parameter from the query string
     const { search } = req.query;
+    const user_id = req.user;
 
     db.getConnection((err, connection) => {
         if (err) {
@@ -366,6 +369,15 @@ router.get('/list_real2', async (req, res) => {
             if (search) {
                 countQuery += ' WHERE p.title LIKE ? OR p.description LIKE ?';
                 countParams.push(`%${search}%`, `%${search}%`);
+            }
+
+            if (all === "false") {
+                if (countQuery.includes('WHERE')) {
+                    countQuery += ' AND p.user_id = ?';
+                } else {
+                    countQuery += ' WHERE p.user_id = ?';
+                }
+                countParams.push(`${user_id}`);
             }
 
             connection.query(countQuery, countParams, (err, countResults) => {
@@ -388,6 +400,15 @@ router.get('/list_real2', async (req, res) => {
                     if (search) {
                         dataQuery += ' WHERE p.title LIKE ? OR p.description LIKE ?';
                         dataParams.push(`%${search}%`, `%${search}%`);
+                    }
+
+                    if (all === "false") {
+                        if (dataQuery.includes('WHERE')) {
+                            dataQuery += ' AND p.user_id = ?';
+                        } else {
+                            dataQuery += ' WHERE p.user_id = ?';
+                        }
+                        dataParams.push(`${user_id}`);
                     }
 
                     dataQuery += ' ORDER BY p.create_time DESC LIMIT ? OFFSET ?';
