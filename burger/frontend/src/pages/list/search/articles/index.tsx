@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LikeOutlined, LoadingOutlined, MessageOutlined, StarOutlined } from '@ant-design/icons';
-import { Button, Card, Form, Input, List, Pagination } from 'antd';
+import { Button, Card, Form, Input, List, Pagination, Modal, message } from 'antd';
 import type { FC } from 'react';
 import ArticleListContent from './components/ArticleListContent';
 import useStyles from './style.style';
@@ -64,17 +64,21 @@ const Articles: FC = () => {
   const starPost = async (postId) => {
     console.log('Received values of form:', postId);
     try {
-      const params = {postId: postId}
-      const response = await doStar(params)
-      // if (!response.ok) {
-      //   throw new Error('Network response was not ok');
-      // }
-      message.success('Thank you for your like!');
+      const params = { postId: postId };
+      const data = await doStar(params);  // Assuming doStar directly returns a parsed JSON object
+  
+      if (!data || data.error) {  // Check if the response includes an error
+        throw new Error(data.message || 'Failed to process your request');
+      }
+  
+      message.success('Thank you for your like! The owner of this post will get one burger coin.');
     } catch (error) {
-      console.error('Failed to like:', error);
+      message.error("You cannot star yourself...")
     }
-    getPosts(searchText, currentPage);
+  
+    getPosts(searchText, currentPage);  // Refresh the posts list
   };
+  
 
   // Effect to fetch posts when searchText changes
   useEffect(() => {

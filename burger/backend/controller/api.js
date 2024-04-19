@@ -447,8 +447,23 @@ router.get('/list_real2', async (req, res) => {
 
 
 // New route to handle increasing the star count
+// DELIMITER $$
+
+// CREATE TRIGGER IncreaseBurgerCoinAfterStar
+// AFTER UPDATE ON Post
+// FOR EACH ROW
+// BEGIN
+//     IF OLD.thumbs_up_num <> NEW.thumbs_up_num THEN
+//         UPDATE User
+//         SET burger_coin = burger_coin + 1
+//         WHERE id = NEW.user_id;
+//     END IF;
+// END$$
+
+// DELIMITER ;
 router.post('/star_post', async (req, res) => {
     const postId = req.body.postId;  // Ensure you have middleware to parse JSON bodies
+    const user_id = req.user; // Assuming `req.user` is set from authentication middleware
 
     if (!postId) {
         return res.status(400).json({ message: 'Post ID must be provided' });
@@ -458,20 +473,40 @@ router.post('/star_post', async (req, res) => {
         if (err) {
             return res.status(500).json({ message: 'Internal server error getting database connection' });
         } else {
-            const updateQuery = 'UPDATE Post SET thumbs_up_num = thumbs_up_num + 1 WHERE id = ?';
-
-            connection.query(updateQuery, [postId], (err, result) => {
-                connection.release();  // Always release the connection back to the pool
-
-                if (err || result.affectedRows === 0) {
-                    return res.status(500).json({ message: 'Error updating post star count' });
+            // First, check if the user trying to star the post is the owner of the post
+            connection.query('SELECT user_id FROM Post WHERE id = ?', [postId], (err, results) => {
+                if (err) {
+                    connection.release();
+                    return res.status(500).json({ message: 'Error querying the post owner' });
                 }
 
-                res.json({ message: 'Post starred successfully' });
+                if (results.length === 0) {
+                    connection.release();
+                    return res.status(404).json({ message: 'Post not found' });
+                }
+
+                const postOwnerId = results[0].user_id;
+                if (postOwnerId === user_id) {
+                    connection.release();
+                    return res.status(403).json({ message: 'You cannot star your own post' });
+                }
+
+                // Proceed to update the star count if the user is not the post owner
+                const updateQuery = 'UPDATE Post SET thumbs_up_num = thumbs_up_num + 1 WHERE id = ?';
+                connection.query(updateQuery, [postId], (err, result) => {
+                    connection.release();  // Always release the connection back to the pool
+
+                    if (err || result.affectedRows === 0) {
+                        return res.status(500).json({ message: 'Error updating post star count' });
+                    }
+
+                    res.json({ message: 'Post starred successfully! The owner will be awarded one burger coin' });
+                });
             });
         }
     });
 });
+
 
 
 module.exports = router;
