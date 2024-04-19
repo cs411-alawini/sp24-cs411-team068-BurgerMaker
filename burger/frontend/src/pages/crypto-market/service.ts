@@ -1,58 +1,60 @@
-import axios from 'axios';
-import type { CardListItemDataType } from './data.d';
+import {request} from '@/app'
+import { AssetItemDataType } from './data.d'
 
-export async function queryFakeList(params: {
-  count: number;
-}): Promise<{ data: { list: CardListItemDataType[] } }> {
-  let url = 'api/crypto';
-  const { data } = await axios.get(url, { params });
-  return data;
+export async function getAssetsList(count: number, offset: number, options?: { [key: string]: any }): 
+  Promise<{ data: AssetItemDataType[] }> {
+  return request('/api/assets', {
+    method: 'GET',
+    params: {
+      count,
+      offset,
+    },
+    ...(options || {}),
+  }).catch((error) => {
+    console.error('Get assets list failed:', error.message);
+    throw error;
+  });
 }
 
-export async function queryDetails() {
-  try {
-    // Fetch the initial list of crypto data
-    const results = await queryFakeList();
-    const crypto_list = results.data.list;
-
-    // Prepare the request config
-    const config = {
-      method: 'get',
-      url: 'https://rest.coinapi.io/v1/assets/',
-      headers: { 
-        'Accept': 'text/plain', 
-        'X-CoinAPI-Key': process.env.COIN_API_KEY
-      }
-    };
-
-    // Fetch all assets data at once
-    const response = await axios(config);
-    const assets = response.data;
-
-    // Convert the array to a map for quick access
-    const assetsMap = new Map(assets.map(asset => [asset.asset_id, asset]));
-
-    // Filter and map to new structure
-    const list = crypto_list.filter(crypto => assetsMap.has(crypto.id)).map(crypto => {
-      const asset = assetsMap.get(crypto.id);
-      return {
-        id: crypto.id,
-        title: crypto.title,
-        logo: crypto.logo,
-        description: '',
-        status: 'normal',
-        price: asset.price_usd,
-        change: crypto.change,
-        id_icon: asset.id_icon,
-        updatedAt: asset.data_end,
-        createdAt: asset.data_start,
-        star: 100,
-        content: '',
-      };
-    });
-    return list;
-  } catch (error) {
-    console.error('Error in queryDetails:', error);
+export async function getPortfolioData(userId: string, options?: { [key: string]: any }): Promise<{ data: any[] }> {
+  return request('/api/portfolio', {
+    method: 'GET',
+    params: {
+      userId,
+    },
+    ...(options || {}),
+  }).catch((error) => {
+    console.error('Get portfolio data failed:', error.message);
     throw error;
-  }
+  });
+}
+
+
+export async function trade(asset_id: string, portfolio_name: string, quantity: number, price: number, options?: { [key: string]: any }): Promise<{ data: any }> {
+  return request('/api/assets/trade', {
+    method: 'POST',
+    data: {
+      asset_id,
+      portfolio_name,
+      quantity,
+      price,
+    },
+    ...(options || {}),
+  }).catch((error) => {
+    // console.error('Trade failed:', error.message);
+    throw error;
+  });
+}
+
+export async function getAssetsTrending(asset_id: string, options?: { [key: string]: any }): Promise<{ data: AssetItemDataType[] }> {
+  return request('/api/assets/trending', {
+    method: 'GET',
+    params: {
+      asset_id,
+    },
+    ...(options || {}),
+  }).catch((error) => {
+    console.error('Get assets trending failed:', error.message);
+    throw error;
+  });
 }

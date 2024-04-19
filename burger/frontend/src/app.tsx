@@ -26,6 +26,7 @@ export async function getInitialState(): Promise<{
       const msg = await queryCurrentUser({
         skipErrorHandler: true,
       });
+      localStorage.setItem('currentUser', JSON.stringify(msg));
       return msg;
     } catch (error) {
       history.push(loginPath);
@@ -130,7 +131,7 @@ export const layout: RunTimeLayoutConfig = ({initialState, setInitialState}) => 
  * @doc https://umijs.org/docs/max/request#配置
  */
 export const request = extend({
-  prefix: 'http://localhost:29979'
+  prefix: 'http://127.0.0.1:4321'
 })
 request.interceptors.request.use((url, options) => {
   // console.log("intercepted!!!")

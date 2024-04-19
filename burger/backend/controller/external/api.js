@@ -1,5 +1,5 @@
 const url = 'https://rest.coinapi.io/v1/';
-const apiKey = 'C464871D-C644-4E42-B86D-1E44F9E2133A'; // 请替换成你的API密钥
+const apiKey = process.env.API_KEY;
 
 async function listAssets(assets) {
     if (assets.length === 0) {
@@ -10,17 +10,17 @@ async function listAssets(assets) {
     console.log(finalUrl)
 
     return fetch(finalUrl, {
-        method: 'GET', // 指定请求方法为GET
+        method: 'GET',
         headers: {
-            'Accept': 'text/plain', // 设置Accept请求头
-            'X-CoinAPI-Key': apiKey // 设置API密钥请求头
+            'Accept': 'text/plain', 
+            'X-CoinAPI-Key': apiKey 
         }
     })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            return response.json(); // 将响应数据转换为JSON
+            return response.json(); 
         })
         .catch(error => {
             console.error('There was a problem with your fetch operation:', error);
@@ -31,25 +31,48 @@ async function getAssetRate(asset, time) {
     const finalUrl = `${url}exchangerate/${asset}/USD?time=${time}`;
     console.log(finalUrl)
     return fetch(finalUrl, {
-        method: 'GET', // 指定请求方法为GET
+        method: 'GET', 
         headers: {
-            'Accept': 'text/plain', // 设置Accept请求头
-            'X-CoinAPI-Key': apiKey // 设置API密钥请求头
+            'Accept': 'text/plain', 
+            'X-CoinAPI-Key': apiKey 
         }
     })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            return response.json(); // 将响应数据转换为JSON
+            return response.json(); 
         })
         .catch(error => {
             console.error('There was a problem with your fetch operation:', error);
         });
 }
 
+
+async function getHistoryData(asset_id, time_start, time_end, limit=2, period_id='1DAY') {
+    const finalUrl = `${url}exchangerate/${asset_id}/USD/history?period_id=${period_id}&time_start=${time_start}&time_end=${time_end}&limit=${limit}`;
+    return fetch(finalUrl, {
+        method: 'GET', 
+        headers: {
+            'Accept': 'text/plain', 
+            'X-CoinAPI-Key': apiKey
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .catch(error => {
+            console.error('There was a problem with your fetch operation:', error);
+        });
+}
+
+
 module.exports = {
     listAssets,
     getAssetRate,
+    getHistoryData
 }
 

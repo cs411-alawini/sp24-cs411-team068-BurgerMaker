@@ -10,7 +10,6 @@ import {
 
 function isColorLight(color) {
   if (typeof color !== 'number') {
-    // 如果颜色不是数字类型，返回默认的文本颜色为暗色
     return false;
   }
 
@@ -19,8 +18,7 @@ function isColorLight(color) {
   const g = parseInt(hex.slice(2, 4), 16);
   const b = parseInt(hex.slice(4, 6), 16);
 
-  // 使用亮度公式来判断颜色
-  return (0.299 * r + 0.587 * g + 0.114 * b) > 186; // 亮度阈值
+  return (0.299 * r + 0.587 * g + 0.114 * b) > 186; 
 }
 
 
@@ -69,16 +67,13 @@ function PortfolioList() {
     const fetchedTrades = await fetchTrades(portfolioId);
     const fetchedHolds = await fetchPortfolioTrade(portfolioId);
 
-    // 首先更新状态
     setTrades(fetchedTrades);
     setHolds(fetchedHolds);
 
-    // 状态更新后再显示Modal
     setIsModalVisible(true);
 
-    // 更新后再打印日志，确保日志显示的是最新状态
-    console.log(portfolioId, '的trade:', fetchedTrades);
-    console.log(portfolioId, "的holds:", fetchedHolds);
+    console.log(portfolioId, ' trade:', fetchedTrades);
+    console.log(portfolioId, " holds:", fetchedHolds);
   };
 
 
@@ -162,14 +157,14 @@ function PortfolioList() {
   ];
 
   const config = {
-    appendPadding: 10,  // 增加更多的内边距
+    appendPadding: 10,  // add padding to the pie chart
     data: holds.map(item => ({
       type: item.asset_id,
       value: item.hold_quantity,
     })),
     angleField: 'value',
     colorField: 'type',
-    radius: 0.75,  // 减小饼图的半径
+    radius: 0.75,  // reduce the radius to make the pie smaller
     innerRadius: 0.4,
     label: {
       type: 'outer',
@@ -192,14 +187,14 @@ function PortfolioList() {
         onCancel={closeModal}
         width={800}
         footer={null}
-        key={Date.now()} // 每次模态框打开都提供一个新的key
+        key={Date.now()} // ensure the modal is re-rendered when the state changes
       >
         <div style={{display: 'flex', justifyContent: 'space-between', overflow: 'hidden'}}>
           <div style={{flex: 1, marginRight: '20px'}}>
             <Table
               dataSource={trades}
               columns={tradeColumns}
-              pagination={{ pageSize: 4 }}  // 修改这里，设置每页显示4条记录
+              pagination={{ pageSize: 4 }}  // display 4 trades per page
               rowKey="id"
             />
           </div>

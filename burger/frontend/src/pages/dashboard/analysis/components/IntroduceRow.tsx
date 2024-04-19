@@ -185,7 +185,7 @@ const IntroduceRow = () => {
             </Tooltip>
           }
           total={numeral(postLikeSum).format('0,0')}
-          footer={<Field label="Likes per posts" value={postLikeSum / postCount}/>}
+          footer={<Field label="Likes per posts" value={(postLikeSum / postCount).toFixed(2)}/>}
           contentHeight={46}
         >
           <Column

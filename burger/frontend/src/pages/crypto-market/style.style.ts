@@ -19,24 +19,37 @@ const useStyles = createStyles(({ token }) => {
     },
     title: { 
       display: 'flex', 
-      alignItems: 'baseline',
+      justifyContent: 'space-between',
+    },
+    name: {
+      // fix width, overflow using ...
+      width: '75px',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+      lineHeight: '25px',
     },
     item: {
-      height: '64px',
+      height: '44px',
       overflow: 'hidden',
-      marginTop: '12px',
+      lineHeight: '25px',
+      marginTop: '16px',
     },
     price: {
       color: token.colorTextSecondary,
       fontSize: '16px',
       marginTop: '-15px',
     },
+    info: {
+      color: token.colorTextSecondary,
+      fontSize: '16px',
+    },
     priceUp: {
-      marginLeft: '12px',
+      marginLeft: '2px',
       color: "#3f8600"
     },
     priceDown: {
-      marginLeft: '12px',
+      marginLeft: '2px',
       color: "#cf1322",
     },
     cardList: {

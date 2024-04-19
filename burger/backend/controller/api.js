@@ -1,9 +1,34 @@
 const express = require('express');
 const db = require('../db/connection');
-const externalApi = require('./external/api')
+const externalApi = require('./external/api');
+const { randomInt } = require('crypto');
 
 const router = express.Router();
-const {listAssets, getAssetRate} = externalApi;
+const {listAssets, getAssetRate, getHistoryData} = externalApi;
+
+
+router.get('/trade', async (req, res) => {
+    const q = `
+        SELECT T.id id, T.time time, A.name asset_name, T.quantity quantity, T.price price, P.name portfolio_name 
+        FROM Trade T JOIN (SELECT * FROM Portfolio WHERE user_id = ?) P ON T.portfolio_id = P.id JOIN Asset A ON A.id=T.asset_id
+        ORDER BY time DESC
+    `;
+    db.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).json({message: 'Internal server error getting database connection'});
+        } else {
+            connection.query(q, [req.user], (err, results) => {
+                connection.release(); // Release the connection back to the pool
+                if (err) {
+                    return res.status(500).json({message: 'Error querying database'});
+                } else {
+                    // console.log(results)
+                    res.json(results);
+                }
+            })
+        }
+    })
+});
 
 router.get('/trade/value', async (req, res) => {
     const q = `
@@ -40,29 +65,6 @@ router.get('/trade/value', async (req, res) => {
     })
 });
 
-router.get('/trade', async (req, res) => {
-    const q = `
-        SELECT T.id id, T.time time, A.name asset_name, T.quantity quantity, T.price price, P.name portfolio_name 
-        FROM Trade T JOIN (SELECT * FROM Portfolio WHERE user_id = ?) P ON T.portfolio_id = P.id JOIN Asset A ON A.id=T.asset_id
-        ORDER BY time DESC
-    `;
-    db.getConnection((err, connection) => {
-        if (err) {
-            return res.status(500).json({message: 'Internal server error getting database connection'});
-        } else {
-            connection.query(q, [req.user], (err, results) => {
-                connection.release(); // Release the connection back to the pool
-                if (err) {
-                    return res.status(500).json({message: 'Error querying database'});
-                } else {
-                    // console.log(results)
-                    res.json(results);
-                }
-            })
-        }
-    })
-});
-
 router.get('/trade/value/:endtime', async (req, res) => {
     const endtime = req.params.endtime;
     const q = `
@@ -93,6 +95,90 @@ router.get('/trade/value/:endtime', async (req, res) => {
         }
     })
 })
+
+router.get('/assets', async (req, res) => {
+    const count = parseInt(req.query.count) || 15;
+    const offset = parseInt(req.query.offset) || 0;
+    const q = `
+        SELECT * FROM Asset
+        LIMIT ? OFFSET ?
+    `;
+    db.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).json({message: 'Internal server error getting database connection'});
+        }
+        connection.query(q, [count, offset], async (err, results) => {
+            connection.release(); // Release the connection back to the pool
+            if (err) {
+                return res.status(500).json({message: 'Error querying database'});
+            }
+            const assetsInfo = results.map(info => ({
+                asset_id: info.id,
+                asset_name: info.name,
+                price: info.price_usd,
+                logo: info.symbol_url
+            }));
+            const assets = await listAssets(assetsInfo.map(info => info.asset_id));
+            assets.forEach(async asset => {
+                const info = assetsInfo.find(info => info.asset_id === asset.asset_id);
+                asset.logo = info.logo;
+                // const trends = await getHistoryData(asset.asset_id, new Date(Date.now() - 2*24 * 60 * 60 * 1000).toISOString(), new Date().toISOString(), 2);
+                // const change = (trends[0].rate_open - trends[1].rate_close) / trends[1].rate_close;
+                
+                asset.change = randomInt(-1500, 1500) / 10000;
+            });
+            res.json(assets);
+        })
+    })
+});
+
+// assets trade
+// CALL ExecuteTrade(
+//     'a544f6f7-d459-4ad1-9dc8-d1b24bd2e638',     -- User ID
+//     '00187865-6a84-42a1-aa26-9b73442aaa84',-- Portfolio ID
+//     'BTC',    -- Asset ID
+//     1.00000000,      -- Buy amount
+//     500.00000000     -- Buy price
+// );
+router.post('/assets/trade', async (req, res) => {
+    const { asset_id, portfolio_name, quantity, price } = req.body;
+    const user_id = req.user;
+    console.log(req.body)
+    if (!asset_id || !portfolio_name || !quantity || !price) {
+        return res.status(400).json({message: 'Missing required fields'});
+    }
+    db.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).json({message: 'Internal server error getting database connection'});
+        }
+        const q = `
+            CALL ExecuteTrade(?, (SELECT id FROM Portfolio WHERE user_id = ? AND name = ?), ?, ?, ?);
+        `;
+        connection.query(q, [user_id, user_id, portfolio_name, asset_id, quantity, price], (err, results) => {
+            connection.release(); // Release the connection back to the pool
+            if (err) {
+                if (err.code === 'ER_WARN_DATA_OUT_OF_RANGE') {
+                    return res.status(500).json({message: 'Insufficient balance'});
+                } else {
+                    return res.status(500).json({message: 'Error executing trade'});
+                }
+            }
+            res.json({message: 'Trade executed successfully'});
+        })
+    })
+});
+
+router.get('/assets/trending', async (req, res) => {
+    const asset_id = req.asset_id;
+    // One day ago
+    const time_start = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const time_end = new Date().toISOString();
+    const limit = 2;
+
+    const historyData = await getHistoryData(asset_id, time_start, time_end, limit);
+    res.json(historyData);
+});
+
 
 router.get('/post/like', async (req, res) => {
     const q = `

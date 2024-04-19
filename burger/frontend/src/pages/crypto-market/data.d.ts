@@ -1,4 +1,4 @@
-export type CardListItemDataType = {
+export type AssetItemDataType = {
   id: string;
   title: string;
   logo: string;
