@@ -10,8 +10,8 @@ import {
 import { useRequest } from '@umijs/max';
 import { Button, Input, message, Upload } from 'antd';
 import React from 'react';
-import { queryCity, queryCurrent, queryProvince } from '../service';
 import useStyles from './index.style';
+import {updateUser} from '../service'
 
 const validatorPhone = (rule: any, value: string[], callback: (message?: string) => void) => {
   if (!value[0]) {
@@ -55,8 +55,9 @@ const BaseView: React.FC = () => {
     }
     return '';
   };
-  const handleFinish = async () => {
-    message.success('更新基本信息成功');
+  const handleFinish = async (values) => {
+    updateUser(values);
+    message.success('Updated successfully!');
   };
   return (
     <div className={styles.baseView}>

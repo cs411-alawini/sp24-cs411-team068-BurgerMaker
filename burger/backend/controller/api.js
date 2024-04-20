@@ -1,7 +1,8 @@
 const express = require('express');
 const db = require('../db/connection');
 const externalApi = require('./external/api');
-const { randomInt } = require('crypto');
+const {randomInt} = require('crypto');
+const CryptoJS = require("crypto-js");
 
 const router = express.Router();
 const {listAssets, getAssetRate, getHistoryData} = externalApi;
@@ -623,6 +624,48 @@ router.post('/star_post', async (req, res) => {
     });
 });
 
+router.put('/user', async (req, res) => {
+    let {email, name, pwd, npwd} = req.body;
+    pwd = CryptoJS.MD5(pwd).toString();
+    npwd = CryptoJS.MD5(npwd).toString();
+    const check = `
+        SELECT password FROM User
+        WHERE id = ?
+    `
+    db.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).json({message: 'Internal server error getting database connection'});
+        } else {
+            connection.query(check, [req.user], (err, results) => {
+                connection.release(); // Release the connection back to the pool
+                if (err) {
+                    return res.status(500).json({message: 'Error querying database'});
+                } else {
+                    if (results[0].password !== pwd) {
+                        return res.status(501).json({message: 'Wrong password!'})
+                    }
+                }
+            })
+        }
+    })
+    const q = `
+        UPDATE User SET password = ?, email = ?, name = ?
+        WHERE id = ?
+    `;
+    db.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).json({message: 'Internal server error getting database connection'});
+        } else {
+            connection.query(q, [npwd, email, name, req.user], (err, results) => {
+                connection.release(); // Release the connection back to the pool
+                if (err) {
+                    return res.status(500).json({message: 'Error querying database'});
+                }
+                return res.status(204).json({message: 'Info updated!'});
+            })
+        }
+    })
+});
 
 
 
