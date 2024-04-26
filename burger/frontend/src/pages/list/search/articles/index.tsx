@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LikeOutlined, LoadingOutlined, MessageOutlined, StarOutlined } from '@ant-design/icons';
+import { LikeOutlined, LoadingOutlined, MessageOutlined, StarOutlined, StarTwoTone } from '@ant-design/icons';
 import { Button, Card, Form, Input, List, Pagination, Modal, message } from 'antd';
 import type { FC } from 'react';
 import ArticleListContent from './components/ArticleListContent';
@@ -38,31 +38,8 @@ const Articles: FC = () => {
     setLoading(false);
   };
 
-  // const starPost = async (postId) => {
-  //   try {
-  //     const response = await fetch('http://localhost:29979/api/star_post', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify({ postId }),
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error('Network response was not ok');
-  //     }
-
-  //     // Fetch posts again to update the UI
-  //     getPosts(searchText, currentPage);
-  //     console.log("postId:")
-  //     console.log(postId)
-  //   } catch (error) {
-  //     console.error('Failed to star post:', error);
-  //   }
-  // };
-
   const starPost = async (postId) => {
-    console.log('Received values of form:', postId);
+    // console.log('Received values of form:', postId);
     try {
       const params = { postId: postId };
       const data = await doStar(params);  // Assuming doStar directly returns a parsed JSON object
@@ -71,7 +48,7 @@ const Articles: FC = () => {
         throw new Error(data.message || 'Failed to process your request');
       }
   
-      message.success('Thank you for your like! The owner of this post will get one burger coin.');
+      message.success('Star status updated!');
     } catch (error) {
       message.error("You cannot star yourself...")
     }
@@ -95,6 +72,12 @@ const Articles: FC = () => {
 
   const handlePageChange = page => {
     setCurrentPage(page);
+  };
+
+  const determineColor = (item) => {
+    // Example condition: change color based on the "starred" status
+    // console.log(item.starredByMe)
+    return item.starredByMe ? '#000000':'#D3D3D3'; // green if starred, pink otherwise
   };
 
   return (
@@ -126,7 +109,7 @@ const Articles: FC = () => {
             <List.Item
             key={item.id}
             actions={[
-              <Button key="star" icon={<StarOutlined />} onClick={() => starPost(item.id)}>
+              <Button key="star" icon={<StarTwoTone twoToneColor={determineColor(item)} />} onClick={() => starPost(item.id)}>
                 {item.star}
               </Button>,
             ]}

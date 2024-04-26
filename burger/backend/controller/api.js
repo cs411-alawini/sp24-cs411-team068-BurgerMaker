@@ -183,8 +183,9 @@ router.get('/assets/trending', async (req, res) => {
 
 router.get('/post/like', async (req, res) => {
     const q = `
-        SELECT SUM(thumbs_up_num) cnt FROM Post
-        WHERE user_id = ?
+        SELECT SUM(star) cnt 
+        FROM StarPostRecord spr, Post p
+        WHERE spr.post_id = p.id and p.user_id = ?
     `;
     db.getConnection((err, connection) => {
         if (err) {
@@ -496,7 +497,7 @@ router.get('/list_real2', async (req, res) => {
                 }
                 countParams.push(`${user_id}`);
             }
-
+            
             connection.query(countQuery, countParams, (err, countResults) => {
                 if (err) {
                     connection.release();
@@ -505,14 +506,53 @@ router.get('/list_real2', async (req, res) => {
                     const totalItems = countResults[0].total;
 
                     // Now handle the main data query with pagination
+                    // let dataQuery = `
+                    //     SELECT p.id, p.title, p.description, p.create_time, p.update_time, p.thumbs_up_num, p.content,
+                    //            u.name AS owner, u.id AS user_id, count(spr.star) as star, starredInfo.starCntByMe
+                    //     FROM Post p
+                    //     LEFT JOIN User u ON p.user_id = u.id
+                    //     LEFT JOIN (
+                    //         select post_id, count(star) as starCntByMe
+                    //         from StarPostRecord
+                    //         where user_id = '00310be2-843a-4a61-a809-38a934fdc972'
+                    //     ) as starredInfo on starredInfo.post_id = p.id
+                    //     LEFT JOIN StarPostRecord spr ON spr.post_id = p.id and spr.star = 1
+                    // `;
                     let dataQuery = `
-                        SELECT p.id, p.title, p.description, p.create_time, p.update_time, p.thumbs_up_num, p.content,
-                               u.name AS owner, u.id AS user_id
-                        FROM Post p
-                        LEFT JOIN User u ON p.user_id = u.id
-                    `;
+                        SELECT 
+                            p.id, 
+                            p.title, 
+                            p.description, 
+                            p.create_time, 
+                            p.update_time, 
+                            p.thumbs_up_num, 
+                            p.content,
+                            u.name AS owner, 
+                            u.id AS user_id, 
+                            count(spr.star) as star, 
+                            COALESCE(starredInfo.starCntByMe, 0) as starCntByMe
+                        FROM 
+                            Post p
+                        LEFT JOIN 
+                            User u ON p.user_id = u.id
+                        LEFT JOIN (
+                            SELECT 
+                                post_id, 
+                                sum(star) as starCntByMe
+                            FROM 
+                                StarPostRecord
+                            WHERE 
+                                user_id = ?
+                            GROUP BY 
+                                post_id
+                        ) AS starredInfo ON starredInfo.post_id = p.id
+                        LEFT JOIN 
+                            StarPostRecord spr ON spr.post_id = p.id and spr.star = 1
+                            `
+
 
                     const dataParams = [];
+                    dataParams.push(`${user_id}`);
 
                     if (search) {
                         dataQuery += ' WHERE p.title LIKE ? OR p.description LIKE ?';
@@ -527,11 +567,13 @@ router.get('/list_real2', async (req, res) => {
                         }
                         dataParams.push(`${user_id}`);
                     }
-
+                    
+                    dataQuery += ' group by p.id, starredInfo.starCntByMe';
                     dataQuery += ' ORDER BY p.create_time DESC LIMIT ? OFFSET ?';
                     const offset = (page - 1) * count;
                     dataParams.push(count, offset);
 
+                    console.log("Executing data query:", dataQuery, dataParams);
                     connection.query(dataQuery, dataParams, (err, results) => {
                         connection.release(); // Always release the connection back to the pool
 
@@ -548,8 +590,9 @@ router.get('/list_real2', async (req, res) => {
                                 updatedAt: post.update_time,
                                 createdAt: post.create_time,
                                 description: post.description,
-                                star: post.thumbs_up_num,
-                                content: post.content
+                                star: post.star,
+                                content: post.content,
+                                starredByMe: post.starCntByMe > 0
                             }));
 
                             // Send both posts and total count in the response
@@ -609,8 +652,8 @@ router.post('/star_post', async (req, res) => {
                 }
 
                 // Proceed to update the star count if the user is not the post owner
-                const updateQuery = 'UPDATE Post SET thumbs_up_num = thumbs_up_num + 1 WHERE id = ?';
-                connection.query(updateQuery, [postId], (err, result) => {
+                const updateQuery = 'INSERT INTO StarPostRecord (user_id, post_id, star) VALUES (?, ?, true) ON DUPLICATE KEY UPDATE star = NOT star';
+                connection.query(updateQuery, [user_id, postId], (err, result) => {
                     connection.release();  // Always release the connection back to the pool
 
                     if (err || result.affectedRows === 0) {
