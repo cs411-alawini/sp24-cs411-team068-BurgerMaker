@@ -61,6 +61,7 @@ const Publish: FC = () => {
       message.error('Failed to publish the post.');
       console.error('Failed to submit form:', error);
     }
+    getPosts(searchText, currentPage);
   };
 
     // Effect to fetch posts when searchText changes
