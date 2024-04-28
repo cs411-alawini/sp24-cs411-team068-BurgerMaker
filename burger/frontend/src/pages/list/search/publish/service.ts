@@ -27,3 +27,21 @@ export async function doPublish(params: object, options?: { [key: string]: any }
     throw error; // Rethrow to let the caller handle further or log it.
   }
 }
+
+export async function doDelete(params: object, options?: { [key: string]: any }) {
+  try {
+    const response = await request('/api/delete_post', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      data: params,
+      ...options,
+    });
+    return response;  // This returns the JSON response body directly if successful.
+  } catch (error) {
+    console.error('Error during the POST request:', error);
+    throw error; // Rethrow to let the caller handle further or log it.
+  }
+}

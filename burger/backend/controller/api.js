@@ -703,6 +703,60 @@ router.post('/star_post', async (req, res) => {
     });
 });
 
+router.post('/delete_post', async (req, res) => {
+    const postId = req.body.postId;  // Ensure you have middleware to parse JSON bodies
+    const userId = req.user; // Assuming `req.user` is set from authentication middleware
+
+    if (!postId) {
+        return res.status(400).json({ message: 'Post ID must be provided' });
+    }
+
+    db.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).json({ message: 'Internal server error getting database connection' });
+        } else {
+            // First, check if the user trying to delete the post is the owner of the post
+            connection.query('SELECT user_id FROM Post WHERE id = ?', [postId], (err, results) => {
+                if (err) {
+                    connection.release();
+                    return res.status(500).json({ message: 'Error querying the post owner' });
+                }
+
+                if (results.length === 0) {
+                    connection.release();
+                    return res.status(404).json({ message: 'Post not found' });
+                }
+
+                const postOwnerId = results[0].user_id;
+                if (postOwnerId !== userId) {
+                    connection.release();
+                    return res.status(403).json({ message: 'You can only delete your own posts' });
+                }
+
+                // Proceed to delete StarPostRecord entries before deleting the post
+                connection.query('DELETE FROM StarPostRecord WHERE post_id = ?', [postId], (err, starDeleteResult) => {
+                    if (err) {
+                        connection.release();
+                        return res.status(500).json({ message: 'Error deleting star records for the post' });
+                    }
+
+                    // Now proceed to delete the post
+                    connection.query('DELETE FROM Post WHERE id = ?', [postId], (err, postDeleteResult) => {
+                        connection.release();  // Always release the connection back to the pool
+
+                        if (err || postDeleteResult.affectedRows === 0) {
+                            return res.status(500).json({ message: 'Error deleting the post' });
+                        }
+
+                        res.json({ message: 'Post and all related star records deleted successfully' });
+                    });
+                });
+            });
+        }
+    });
+});
+
+
 router.put('/user', async (req, res) => {
     let {email, name, pwd, npwd} = req.body;
     pwd = CryptoJS.MD5(pwd).toString();
