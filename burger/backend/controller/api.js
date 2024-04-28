@@ -107,22 +107,17 @@ router.get('/assets', async (req, res) => {
     const count = parseInt(req.query.count) || 15;
     const offset = parseInt(req.query.offset) || 0;
     const search_text = req.query.search_text || '';
-    const rankers = req.query.rankers || [''];
-    console.log(rankers)
-    rankers = rankers.join(', ');
-    const order_query = rankers.length > 0 ? 'ORDER BY ' + rankers + ' DESC' : '';
+    const rankers = req.query.rankers.split(',') || [];
 
     const q = `
         SELECT * FROM Asset
         WHERE name LIKE ?
-        ${order_query}
-        LIMIT ? OFFSET ?
     `; 
     db.getConnection((err, connection) => {
         if (err) {
             return res.status(500).json({message: 'Internal server error getting database connection'});
         }
-        connection.query(q, [`%${search_text}%`, count, offset], async (err, results) => {
+        connection.query(q, [`%${search_text}%`], async (err, results) => {
             connection.release(); // Release the connection back to the pool
             if (err) {
                 return res.status(500).json({message: 'Error querying database'});
@@ -130,19 +125,33 @@ router.get('/assets', async (req, res) => {
             const assetsInfo = results.map(info => ({
                 asset_id: info.id,
                 asset_name: info.name,
-                price: info.price_usd,
                 logo: info.symbol_url
             }));
-            const assets = await listAssets(assetsInfo.map(info => info.asset_id));
+            let assets = await listAssets(assetsInfo.map(info => info.asset_id));
             assets.forEach(async asset => {
                 const info = assetsInfo.find(info => info.asset_id === asset.asset_id);
+                if (!info) {
+                    return;
+                }
                 asset.logo = info.logo;
                 // const trends = await getHistoryData(asset.asset_id, new Date(Date.now() - 2*24 * 60 * 60 * 1000).toISOString(), new Date().toISOString(), 2);
                 // const change = (trends[0].rate_open - trends[1].rate_close) / trends[1].rate_close;
 
                 asset.change = randomInt(-1500, 1500) / 10000;
             });
-            res.json(assets);
+
+            // Apply filters [count, offset, rankers]
+            total = Math.ceil(assets.length);
+            assets = assets.slice(offset, offset + count);
+            rankers.forEach(ranker => {
+                assets.sort((a, b) => {return b[ranker] - a[ranker];})
+            });
+            res.json(
+                {
+                    total: total,
+                    assets: assets,
+                }
+            )
         })
     })
 });

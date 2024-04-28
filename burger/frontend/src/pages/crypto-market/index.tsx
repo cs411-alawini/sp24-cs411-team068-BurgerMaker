@@ -15,32 +15,34 @@ const CardList = () => {
   const [searchText, setSearchText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20); // Adjust the page size as needed
+  const [total, setTotalCount] = useState(200);
 
   const [priceFilter, setPriceFilter] = useState(false);
   const [volumeFilter, setVolumeFilter] = useState(false);
 
+
   useEffect(() => {
     fetchAssets();
-  }, [searchText]);
+  }, [currentPage, pageSize, total, searchText, priceFilter, volumeFilter]);
+
+  const fetchAssets = async () => {
+    setLoading(true);
+    let rankers = [priceFilter ? 'price_usd': '', volumeFilter ? 'volume_1hrs_usd' : ''];
+    rankers = rankers.filter(item => item !== '');
+    rankers = rankers.join(',');
+    const results = await getAssetsList(
+      pageSize, (currentPage - 1) * pageSize, searchText, 
+      rankers
+    );
+    setTotalCount(results.total);
+    setAssets(results.assets);
+    setLoading(false);
+  };
 
   const handleSearchChange = (e) => {
     setSearchText(e.target.value);
   };
-
-  const fetchAssets = async () => {
-    setLoading(true);
-    const result = await getAssetsList(
-      pageSize, (currentPage - 1) * pageSize, searchText, 
-      [priceFilter ? 'price_usd' : '', volumeFilter ? 'volume_1hrs_usd' : '']
-    );
-    setAssets(result);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchAssets();
-  }, [currentPage, pageSize]);
-
+  
   const handlePageChange = page => {
     setCurrentPage(page);
   };
@@ -80,6 +82,19 @@ const CardList = () => {
     setVisible(false);
   }
 
+  function formatNumber(num) {
+    if (num >= 1000000000) {
+      return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+    }
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    }
+    return num.toString();
+  }
+
   const handleTrade= (isBuy: boolean) => {
     console.log('Selected Crypto:', selectedCrypto);
     console.log('Selected Portfolio:', selectedPortfolio);
@@ -100,7 +115,7 @@ const CardList = () => {
     } else if (amount === '') {
       messageApi.error('Please enter an amount');
       return;
-    } else if (indicator*amount <= 0) {
+    } else if (amount <= 0) {
       messageApi.error('Please enter a valid amount');
       return;
     } else if (isNaN(amount)) {
@@ -113,11 +128,11 @@ const CardList = () => {
 
     const portfolioName = selectedPortfolio.name;
     const price = selectedCrypto.price_usd;
-    const quantity = amount;
+    const quantity = indicator*amount;
 
     trade(selectedCrypto.asset_id, portfolioName, quantity, price, { userId })
       .then(() => {
-        messageApi.success(`Trade successful: ${isBuy ? 'Bought' : 'Sold'} ${quantity} ${selectedCrypto.name} in ${portfolioName}!`);
+        messageApi.success(`Trade successful: ${isBuy ? 'Bought' : 'Sold'} ${amount} ${selectedCrypto.name} in ${portfolioName}!`);
         setVisible(false);
       })
       .catch(error => {
@@ -140,12 +155,12 @@ const CardList = () => {
       {contextHolder}
       <PageContainer>
         <Row align="middle" gutter={16}>
-          <Col>
+        <Col>
           <Button
               type={priceFilter ? 'primary' : 'default'}
               onClick={() => setPriceFilter(!priceFilter)}
             >
-              {priceFilter ? 'Price ↓' : 'Price ↑'}
+              Price
           </Button>
           </Col>
           <Col>
@@ -153,7 +168,7 @@ const CardList = () => {
               type={volumeFilter ? 'primary' : 'default'}
               onClick={() => setVolumeFilter(!volumeFilter)}
             >
-              {volumeFilter ? 'Volume ↓' : 'Volume ↑'}
+              Volume
           </Button>
           </Col>
           <Col flex="auto">
@@ -177,7 +192,7 @@ const CardList = () => {
             pagination={{
               current: currentPage,
               pageSize: pageSize,
-              total: 200, // You should dynamically set this based on the total number of items from your API
+              total: total,
               onChange: handlePageChange,
               onShowSizeChange: handlePageSizeChange
             }}
@@ -200,12 +215,12 @@ const CardList = () => {
                     }
                     description={
                       <Paragraph className={styles.price}>
-                          Price: ${item.price_usd.toFixed(2)}
+                          Price: ${formatNumber(item.price_usd.toFixed(3))} 
                       </Paragraph>
                     }
                   />
                     <Paragraph className={styles.item}>
-                        <Row>Volume 1h: ${item.volume_1hrs_usd.toFixed(2)}</Row>
+                        <Row>Volume 1h: ${formatNumber(item.volume_1hrs_usd)}</Row>
                         <Row><CalendarOutlined /> : {item.data_start}</Row>
                     </Paragraph>
                 </Card>
