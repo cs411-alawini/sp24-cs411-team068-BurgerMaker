@@ -1,4 +1,4 @@
-import {Card, Modal, Table, Tooltip} from 'antd';
+import {Card, Modal, Table, Tooltip, Button} from 'antd';
 import {useEffect, useState} from 'react';
 import { Pie } from '@ant-design/plots';
 import {
@@ -6,7 +6,11 @@ import {
   fetchPortfoliosStatusAndCost,
   fetchPortfolioTrade,
   fetchTrades,
+  fetchPortfolioAdvice,
+  genPortfolioAdvice
 } from '../service'
+import chatLogo from './chat.jpg';
+
 
 function isColorLight(color) {
   if (typeof color !== 'number') {
@@ -18,7 +22,7 @@ function isColorLight(color) {
   const g = parseInt(hex.slice(2, 4), 16);
   const b = parseInt(hex.slice(4, 6), 16);
 
-  return (0.299 * r + 0.587 * g + 0.114 * b) > 186; 
+  return (0.299 * r + 0.587 * g + 0.114 * b) > 186;
 }
 
 
@@ -27,6 +31,9 @@ function PortfolioList() {
   const [trades, setTrades] = useState([]);
   const [holds, setHolds] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [advice, setAdvice] = useState('');
+  const [activePortfolioId, setActivePortfolioId] = useState(null);
+
 
   // const userId = "054fb851-41ab-4cd3-9b81-eae67a41690d";
 
@@ -52,9 +59,9 @@ function PortfolioList() {
     });
 
     // Debugging logs to see the outputs
-    console.log(portfolios);
-    console.log(portfoliosStatus);
-    console.log(combinedData);
+    // console.log(portfolios);
+    // console.log(portfoliosStatus);
+    // console.log(combinedData);
 
     // Set the combined data into state
     setCombinedPortfolios(combinedData);
@@ -66,14 +73,30 @@ function PortfolioList() {
   const handleNameClick = async (portfolioId) => {
     const fetchedTrades = await fetchTrades(portfolioId);
     const fetchedHolds = await fetchPortfolioTrade(portfolioId);
+    const fetchedAdvice = await fetchPortfolioAdvice(portfolioId);
+    setActivePortfolioId(portfolioId);
+    // console.log(fetchedAdvice);
+    setAdvice(fetchedAdvice.length > 0 ? fetchedAdvice[0].content : 'No advice available');
 
     setTrades(fetchedTrades);
     setHolds(fetchedHolds);
 
     setIsModalVisible(true);
 
-    console.log(portfolioId, ' trade:', fetchedTrades);
-    console.log(portfolioId, " holds:", fetchedHolds);
+    // console.log(portfolioId, ' trade:', fetchedTrades);
+    // console.log(portfolioId, " holds:", fetchedHolds);
+  };
+
+
+  const handleBtnClick = async (portfolioId) => {
+    try {
+      await genPortfolioAdvice(portfolioId); // 生成新的投资建议
+      const fetchedAdvice = await fetchPortfolioAdvice(portfolioId); // 获取最新的投资建议
+      setAdvice(fetchedAdvice.length > 0 ? fetchedAdvice[0].content : 'No advice available.');
+    } catch (error) {
+      console.error('Error fetching new advice:', error);
+      setAdvice('Failed to fetch new advice');
+    }
   };
 
 
@@ -194,12 +217,39 @@ function PortfolioList() {
             <Table
               dataSource={trades}
               columns={tradeColumns}
-              pagination={{ pageSize: 4 }}  // display 4 trades per page
+              pagination={{pageSize: 4}}  // display 4 trades per page
               rowKey="id"
             />
           </div>
           <div style={{flex: '1 1 auto', overflow: 'hidden'}} key={`pie-${Date.now()}`}>
             <Pie {...config} />
+          </div>
+        </div>
+        <div style={{flex: 1, display: 'flex'}}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            marginRight: '20px',
+            alignItems: 'center',
+            width: '100px'
+          }}>
+            <img src={chatLogo} alt="Investment Advice" style={{width: '100%', height: 'auto', marginBottom: '10px'}}/>
+            <button onClick={() => handleBtnClick(activePortfolioId)}
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: '16px',
+                      cursor: 'pointer',
+                      background: "#006acb",
+                      color: "white",
+                      fontWeight: 'bold',
+                      borderRadius: "8px",
+                      border: 'none'
+                    }}>
+              Generate Advice
+            </button>
+          </div>
+          <div style={{flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '5px', overflow: 'auto'}}>
+            {advice}
           </div>
         </div>
       </Modal>

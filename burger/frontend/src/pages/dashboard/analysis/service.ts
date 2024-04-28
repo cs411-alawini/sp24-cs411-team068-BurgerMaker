@@ -74,6 +74,28 @@ export async function fetchTrades(portfolioId: string, options?: { [key: string]
   )
 }
 
+export async function fetchPortfolioAdvice(portfolioId: string, options?: { [key: string]: any }) {
+  return request(
+    `/api/${portfolioId}/advice`,
+    {
+      method: 'GET',
+      ...(options || {})
+    }
+  )
+}
+
+export async function genPortfolioAdvice(portfolioId: string, options?: { [key: string]: any }) {
+  return request(
+    `/api/advice/${portfolioId}`,
+    {
+      method: 'GET',
+      ...(options || {})
+    }
+  )
+}
+
+
+
 export async function getTotalCostOfUser(options?: { [key: string]: any }) {
   return request(
     `/api/cost-info-of-user`,

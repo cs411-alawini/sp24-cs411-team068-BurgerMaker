@@ -407,6 +407,32 @@ router.get('/:portfolioid/holds', (req, res) => {
     });
 });
 
+
+router.get('/:portfolioid/advice', (req, res) => {
+    const portfolioId = req.params.portfolioid;
+    const query = `
+      SELECT content
+      FROM InvestmentAdvice
+      WHERE portfolio_id = ?
+      ORDER BY create_time DESC
+      LIMIT 1;
+    `;
+    db.getConnection((err, connection) => {
+        if (err) {
+            res.status(500).json({message: 'Internal server error'});
+        } else {
+            connection.query(query, [portfolioId], (err, rows) => {
+                if (err) {
+                    res.status(500).json({message: 'Internal server error'});
+                } else {
+                    res.json(rows);
+                }
+            });
+        }
+    });
+});
+
+
 router.get('/portfolio-status', (req, res) => {
     // const userId = req.user.userId;
     // console.log(req.user);
@@ -739,7 +765,7 @@ router.get('/advice/:portfolioid', async (req, res) => {
                     } else {
                         const prompt = rows.map(item => `asset: ${item.asset_id}, quantity: ${item.hold_quantity}`).join('; ');
                         advice = await genAdvice(prompt);
-                        console.log(advice)
+                        // console.log(advice)
                         const insert_q = `
                             INSERT INTO InvestmentAdvice VALUES(UUID(),?,?,NOW());
                         `;
@@ -761,6 +787,7 @@ router.get('/advice/:portfolioid', async (req, res) => {
                         });
                     }
                 });
+
             }
         });
     } catch (error) {
