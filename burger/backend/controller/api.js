@@ -361,7 +361,8 @@ router.get('/:portfolioid/trade', (req, res) => {
     const query = `
       SELECT *
       FROM Trade
-      WHERE portfolio_id = ?;
+      WHERE portfolio_id = ?
+      ORDER BY time DESC;
     `;
     db.getConnection((err, connection) => {
         if (err) {
