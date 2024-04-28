@@ -107,12 +107,15 @@ router.get('/assets', async (req, res) => {
     const count = parseInt(req.query.count) || 15;
     const offset = parseInt(req.query.offset) || 0;
     const search_text = req.query.search_text || '';
-    const ranker = req.query.ranker || '';
-
+    const rankers = req.query.rankers || [''];
+    console.log(rankers)
+    rankers = rankers.join(', ');
+    const order_query = rankers.length > 0 ? 'ORDER BY ' + rankers + ' DESC' : '';
 
     const q = `
         SELECT * FROM Asset
         WHERE name LIKE ?
+        ${order_query}
         LIMIT ? OFFSET ?
     `; 
     db.getConnection((err, connection) => {

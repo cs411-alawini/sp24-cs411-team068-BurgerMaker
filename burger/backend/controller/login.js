@@ -12,7 +12,6 @@ router.post('/', (req, res) => {
             res.status(500).json({message: 'Internal server error'});
         } else {
             const pwdMD5 = CryptoJS.MD5(password).toString();
-            // console.log('now:', email, pwdMD5,password, userId)
             connection.query(`SELECT id, password FROM dev.User WHERE email = ? AND password = ?`, [email, pwdMD5], (err, rows) => {
                 if (err) {
                     res.status(500).json({message: 'Internal server error'});
