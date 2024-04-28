@@ -5,7 +5,13 @@ const {randomInt} = require('crypto');
 const CryptoJS = require("crypto-js");
 
 const router = express.Router();
-const {listAssets, getAssetRate, getHistoryData} = externalApi;
+const {listAssets, getAssetRate, getHistoryData, genAdvice} = externalApi;
+
+
+// ChatGPT config
+// const configuration = new Configuration({
+//     apiKey: "sk-proj-ssmxN20r5fkZwzfbkuduT3BlbkFJDDl5t9rAa2yhujcjiE3J"
+// });
 
 
 router.get('/trade', async (req, res) => {
@@ -125,7 +131,7 @@ router.get('/assets', async (req, res) => {
                 asset.logo = info.logo;
                 // const trends = await getHistoryData(asset.asset_id, new Date(Date.now() - 2*24 * 60 * 60 * 1000).toISOString(), new Date().toISOString(), 2);
                 // const change = (trends[0].rate_open - trends[1].rate_close) / trends[1].rate_close;
-                
+
                 asset.change = randomInt(-1500, 1500) / 10000;
             });
             res.json(assets);
@@ -142,7 +148,7 @@ router.get('/assets', async (req, res) => {
 //     500.00000000     -- Buy price
 // );
 router.post('/assets/trade', async (req, res) => {
-    const { asset_id, portfolio_name, quantity, price } = req.body;
+    const {asset_id, portfolio_name, quantity, price} = req.body;
     const user_id = req.user;
     console.log(req.body)
     if (!asset_id || !portfolio_name || !quantity || !price) {
@@ -310,14 +316,14 @@ router.get('/cost-info-of-user', (req, res) => {
 
     db.getConnection((err, connection) => {
         if (err) {
-            res.status(500).json({ message: 'Internal server error' });
+            res.status(500).json({message: 'Internal server error'});
             return;
         }
 
         connection.query(query, [userId], (err, results) => {
             connection.release();
             if (err) {
-                res.status(500).json({ message: 'Internal server error' });
+                res.status(500).json({message: 'Internal server error'});
             } else {
                 // 使用 map 方法来重新格式化每个条目
                 const formattedResults = results[0].map(row => ({
@@ -343,11 +349,11 @@ router.get('/portfolio', (req, res) => {
     `;
     db.getConnection((err, connection) => {
         if (err) {
-            res.status(500).json({ message: 'Internal server error' });
+            res.status(500).json({message: 'Internal server error'});
         } else {
             connection.query(query, [userId], (err, rows) => {
                 if (err) {
-                    res.status(500).json({ message: 'Internal server error' });
+                    res.status(500).json({message: 'Internal server error'});
                 } else {
                     res.json(rows);
                 }
@@ -366,11 +372,11 @@ router.get('/:portfolioid/trade', (req, res) => {
     `;
     db.getConnection((err, connection) => {
         if (err) {
-            res.status(500).json({ message: 'Internal server error' });
+            res.status(500).json({message: 'Internal server error'});
         } else {
             connection.query(query, [portfolioId], (err, rows) => {
                 if (err) {
-                    res.status(500).json({ message: 'Internal server error' });
+                    res.status(500).json({message: 'Internal server error'});
                 } else {
                     res.json(rows);
                 }
@@ -388,11 +394,11 @@ router.get('/:portfolioid/holds', (req, res) => {
     `;
     db.getConnection((err, connection) => {
         if (err) {
-            res.status(500).json({ message: 'Internal server error' });
+            res.status(500).json({message: 'Internal server error'});
         } else {
             connection.query(query, [portfolioId], (err, rows) => {
                 if (err) {
-                    res.status(500).json({ message: 'Internal server error' });
+                    res.status(500).json({message: 'Internal server error'});
                 } else {
                     res.json(rows);
                 }
@@ -410,14 +416,14 @@ router.get('/portfolio-status', (req, res) => {
 
     db.getConnection((err, connection) => {
         if (err) {
-            res.status(500).json({ message: 'Internal server error' });
+            res.status(500).json({message: 'Internal server error'});
             return;
         }
 
         connection.query(query, [userId], (err, results) => {
             connection.release();
             if (err) {
-                res.status(500).json({ message: 'Internal server error' });
+                res.status(500).json({message: 'Internal server error'});
             } else {
                 // Typically, the result of a stored procedure is nested inside an array.
                 res.json(results[0]);
@@ -427,15 +433,15 @@ router.get('/portfolio-status', (req, res) => {
 });
 
 router.post('/post/publish', async (req, res) => {
-    const { title, description, content } = req.body;
+    const {title, description, content} = req.body;
     const user_id = req.user;
     if (!title || !description || !content) {
-        return res.status(400).json({ message: 'Missing required fields' });
+        return res.status(400).json({message: 'Missing required fields'});
     }
 
     db.getConnection((err, connection) => {
         if (err) {
-            res.status(500).json({ message: 'Internal server error, unable to establish database connection' });
+            res.status(500).json({message: 'Internal server error, unable to establish database connection'});
         } else {
             const query = `
                 INSERT INTO Post (
@@ -452,9 +458,9 @@ router.post('/post/publish', async (req, res) => {
             connection.query(query, [title, description, content, user_id], (err, results) => {
                 connection.release(); // Release the connection back to the pool
                 if (err) {
-                    res.status(500).json({ message: 'Internal server error, failed to insert post' });
+                    res.status(500).json({message: 'Internal server error, failed to insert post'});
                 } else {
-                    res.status(200).json({ message: 'Post published successfully', postId: results.insertId });
+                    res.status(200).json({message: 'Post published successfully', postId: results.insertId});
                 }
             });
         }
@@ -466,15 +472,15 @@ router.get('/list_real2', async (req, res) => {
     // Parse the count and page from the query, default to 10 and page 1 if not provided
     const count = parseInt(req.query.count) || 10;
     const page = parseInt(req.query.page) || 1;
-    const { all } = req.query;
+    const {all} = req.query;
     // const all = false
     // Retrieve the search parameter from the query string
-    const { search } = req.query;
+    const {search} = req.query;
     const user_id = req.user;
 
     db.getConnection((err, connection) => {
         if (err) {
-            return res.status(500).json({ message: 'Internal server error getting database connection' });
+            return res.status(500).json({message: 'Internal server error getting database connection'});
         } else {
             // First, we'll handle the total count query
             let countQuery = `
@@ -498,11 +504,11 @@ router.get('/list_real2', async (req, res) => {
                 }
                 countParams.push(`${user_id}`);
             }
-            
+
             connection.query(countQuery, countParams, (err, countResults) => {
                 if (err) {
                     connection.release();
-                    return res.status(500).json({ message: 'Error querying total count' });
+                    return res.status(500).json({message: 'Error querying total count'});
                 } else {
                     const totalItems = countResults[0].total;
 
@@ -555,20 +561,23 @@ router.get('/list_real2', async (req, res) => {
                     const dataParams = [];
                     dataParams.push(`${user_id}`);
 
+                    const hasWhere = false;
+
                     if (search) {
                         dataQuery += ' WHERE p.title LIKE ? OR p.description LIKE ?';
                         dataParams.push(`%${search}%`, `%${search}%`);
+                        hasWhere = true;
                     }
 
                     if (all === "false") {
-                        if (dataQuery.includes('WHERE')) {
+                        if (hasWhere) {
                             dataQuery += ' AND p.user_id = ?';
                         } else {
                             dataQuery += ' WHERE p.user_id = ?';
                         }
                         dataParams.push(`${user_id}`);
                     }
-                    
+
                     dataQuery += ' group by p.id, starredInfo.starCntByMe';
                     dataQuery += ' ORDER BY p.create_time DESC LIMIT ? OFFSET ?';
                     const offset = (page - 1) * count;
@@ -579,7 +588,7 @@ router.get('/list_real2', async (req, res) => {
                         connection.release(); // Always release the connection back to the pool
 
                         if (err) {
-                            return res.status(500).json({ message: 'Error querying posts data' });
+                            return res.status(500).json({message: 'Error querying posts data'});
                         } else {
                             // Map the results to the desired format
                             const listData = results.map(post => ({
@@ -597,7 +606,7 @@ router.get('/list_real2', async (req, res) => {
                             }));
 
                             // Send both posts and total count in the response
-                            res.json({ posts: listData, total: totalItems });
+                            res.json({posts: listData, total: totalItems});
                         }
                     });
                 }
@@ -627,29 +636,29 @@ router.post('/star_post', async (req, res) => {
     const user_id = req.user; // Assuming `req.user` is set from authentication middleware
 
     if (!postId) {
-        return res.status(400).json({ message: 'Post ID must be provided' });
+        return res.status(400).json({message: 'Post ID must be provided'});
     }
 
     db.getConnection((err, connection) => {
         if (err) {
-            return res.status(500).json({ message: 'Internal server error getting database connection' });
+            return res.status(500).json({message: 'Internal server error getting database connection'});
         } else {
             // First, check if the user trying to star the post is the owner of the post
             connection.query('SELECT user_id FROM Post WHERE id = ?', [postId], (err, results) => {
                 if (err) {
                     connection.release();
-                    return res.status(500).json({ message: 'Error querying the post owner' });
+                    return res.status(500).json({message: 'Error querying the post owner'});
                 }
 
                 if (results.length === 0) {
                     connection.release();
-                    return res.status(404).json({ message: 'Post not found' });
+                    return res.status(404).json({message: 'Post not found'});
                 }
 
                 const postOwnerId = results[0].user_id;
                 if (postOwnerId === user_id) {
                     connection.release();
-                    return res.status(403).json({ message: 'You cannot star your own post' });
+                    return res.status(403).json({message: 'You cannot star your own post'});
                 }
 
                 // Proceed to update the star count if the user is not the post owner
@@ -658,10 +667,10 @@ router.post('/star_post', async (req, res) => {
                     connection.release();  // Always release the connection back to the pool
 
                     if (err || result.affectedRows === 0) {
-                        return res.status(500).json({ message: 'Error updating post star count' });
+                        return res.status(500).json({message: 'Error updating post star count'});
                     }
 
-                    res.json({ message: 'Post starred successfully! The owner will be awarded one burger coin' });
+                    res.json({message: 'Post starred successfully! The owner will be awarded one burger coin'});
                 });
             });
         }
@@ -711,7 +720,54 @@ router.put('/user', async (req, res) => {
     })
 });
 
-
+router.get('/advice/:portfolioid', async (req, res) => {
+    try {
+        const portfolioId = req.params.portfolioid;
+        const query = `
+          SELECT *
+          FROM Hold
+          WHERE portfolio_id = ?;
+        `;
+        let advice = '';
+        db.getConnection((err, connection) => {
+            if (err) {
+                res.status(500).json({message: 'Internal server error'});
+            } else {
+                connection.query(query, [portfolioId], async (err, rows) => {
+                    if (err) {
+                        res.status(500).json({message: 'Internal server error'});
+                    } else {
+                        const prompt = rows.map(item => `asset: ${item.asset_id}, quantity: ${item.hold_quantity}`).join('; ');
+                        advice = await genAdvice(prompt);
+                        console.log(advice)
+                        const insert_q = `
+                            INSERT INTO InvestmentAdvice VALUES(UUID(),?,?,NOW());
+                        `;
+                        db.getConnection((err1, connection1) => {
+                            if (err1) {
+                                res.status(500).json({message: 'Internal server error'});
+                            } else {
+                                connection1.query(insert_q, [advice, portfolioId], (err, _) => {
+                                    if (err) {
+                                        res.status(500).json({message: 'Internal server error'});
+                                    } else {
+                                        res.status(200).json({
+                                            message: 'Advice inserted successfully',
+                                            portfolio: portfolioId
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    } catch (error) {
+        console.error('Error while fetching advice:', error);
+        res.status(500).send("An error occurred while generating advice.");
+    }
+});
 
 
 module.exports = router;
