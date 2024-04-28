@@ -17,6 +17,10 @@ const useStyles = createStyles(({ token }) => {
         },
       },
     },
+    search: {
+      display: 'flex',
+      marginBottom: '16px',
+    },
     title: { 
       display: 'flex', 
       justifyContent: 'space-between',
@@ -53,6 +57,7 @@ const useStyles = createStyles(({ token }) => {
       color: "#cf1322",
     },
     cardList: {
+      marginTop: '16px',
       '.ant-list .ant-list-item-content-single': { maxWidth: '100%' },
     },
     extraImg: {

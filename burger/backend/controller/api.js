@@ -100,15 +100,20 @@ router.get('/trade/value/:endtime', async (req, res) => {
 router.get('/assets', async (req, res) => {
     const count = parseInt(req.query.count) || 15;
     const offset = parseInt(req.query.offset) || 0;
+    const search_text = req.query.search_text || '';
+    const ranker = req.query.ranker || '';
+
+
     const q = `
         SELECT * FROM Asset
+        WHERE name LIKE ?
         LIMIT ? OFFSET ?
-    `;
+    `; 
     db.getConnection((err, connection) => {
         if (err) {
             return res.status(500).json({message: 'Internal server error getting database connection'});
         }
-        connection.query(q, [count, offset], async (err, results) => {
+        connection.query(q, [`%${search_text}%`, count, offset], async (err, results) => {
             connection.release(); // Release the connection back to the pool
             if (err) {
                 return res.status(500).json({message: 'Error querying database'});

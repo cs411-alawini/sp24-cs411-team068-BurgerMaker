@@ -12,17 +12,33 @@ const CardList = () => {
   const { styles } = useStyles();
   const [assets, setAssets] = useState<CardListItemDataType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20); // Adjust the page size as needed
 
+  const [priceFilter, setPriceFilter] = useState(false);
+  const [volumeFilter, setVolumeFilter] = useState(false);
+
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const result = await getAssetsList(pageSize, (currentPage - 1) * pageSize);
-      setAssets(result);
-      setLoading(false);
-    };
-    fetchData();
+    fetchAssets();
+  }, [searchText]);
+
+  const handleSearchChange = (e) => {
+    setSearchText(e.target.value);
+  };
+
+  const fetchAssets = async () => {
+    setLoading(true);
+    const result = await getAssetsList(
+      pageSize, (currentPage - 1) * pageSize, searchText, 
+      [priceFilter ? 'price_usd' : '', volumeFilter ? 'volume_1hrs_usd' : '']
+    );
+    setAssets(result);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchAssets();
   }, [currentPage, pageSize]);
 
   const handlePageChange = page => {
@@ -123,6 +139,35 @@ const CardList = () => {
     <>
       {contextHolder}
       <PageContainer>
+        <Row align="middle" gutter={16}>
+          <Col>
+          <Button
+              type={priceFilter ? 'primary' : 'default'}
+              onClick={() => setPriceFilter(!priceFilter)}
+            >
+              {priceFilter ? 'Price ↓' : 'Price ↑'}
+          </Button>
+          </Col>
+          <Col>
+          <Button
+              type={volumeFilter ? 'primary' : 'default'}
+              onClick={() => setVolumeFilter(!volumeFilter)}
+            >
+              {volumeFilter ? 'Volume ↓' : 'Volume ↑'}
+          </Button>
+          </Col>
+          <Col flex="auto">
+            <Input
+              placeholder="Search Crypto"
+              enterButton="Search"
+              size="large"
+              loading={loading}
+              value={searchText}
+              onChange={handleSearchChange}
+              onSearch={fetchAssets} // Trigger fetch when search button is clicked or enter is pressed
+            />
+          </Col>
+        </Row>
         <div className={styles.cardList}>
           <List
             rowKey="id"

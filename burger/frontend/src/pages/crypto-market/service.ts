@@ -1,13 +1,15 @@
 import {request} from '@/app'
 import { AssetItemDataType } from './data.d'
 
-export async function getAssetsList(count: number, offset: number, options?: { [key: string]: any }): 
+export async function getAssetsList(count: number, offset: number, search_text: string, options?: { [key: string]: any }): 
   Promise<{ data: AssetItemDataType[] }> {
+    console.log(options)
   return request('/api/assets', {
     method: 'GET',
     params: {
       count,
       offset,
+      search_text,
     },
     ...(options || {}),
   }).catch((error) => {
