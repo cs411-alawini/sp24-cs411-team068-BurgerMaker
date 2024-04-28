@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { LikeOutlined, LoadingOutlined, MessageOutlined, StarOutlined } from '@ant-design/icons';
+import { LikeOutlined, LoadingOutlined, MessageOutlined, StarOutlined, CloseOutlined } from '@ant-design/icons';
 import { Button, Form, Input, Card, message, Pagination, List } from 'antd';
 import ArticleListContent from '../articles/components/ArticleListContent';
 import type { FC } from 'react';
 import useStyles from './style.style';
-import { doPublish } from './service';  // Adjust the import path as necessary
+import { doPublish, doDelete } from './service';  // Adjust the import path as necessary
 import { getPostList, doStar } from '../articles/service';
 
 const Publish: FC = () => {
@@ -37,11 +37,11 @@ const Publish: FC = () => {
       setLoading(false);
     };
 
-    const starPost = async (postId) => {
+    const deletePost = async (postId) => {
       console.log('Received values of form:', postId);
       try {
         const params = {postId: postId}
-        const response = await doStar(params)
+        const response = await doDelete(params)
         // if (!response.ok) {
         //   throw new Error('Network response was not ok');
         // }
@@ -131,11 +131,10 @@ const Publish: FC = () => {
           renderItem={(item) => (
             <List.Item
             key={item.id}
-            // actions={[
-            //   <Button key="star" icon={<StarOutlined />} onClick={() => starPost(item.id)}>
-            //     {item.star}
-            //   </Button>,
-            // ]}
+            actions={[
+              <Button key="star" icon={<CloseOutlined />} onClick={() => deletePost(item.id)}>
+              </Button>,
+            ]}
             extra={<div className={styles.listItemExtra} />}
           >
               {expandedId === item.id ? (
