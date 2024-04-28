@@ -554,13 +554,16 @@ router.get('/list_real2', async (req, res) => {
                     const dataParams = [];
                     dataParams.push(`${user_id}`);
 
+                    const hasWhere = false;
+
                     if (search) {
                         dataQuery += ' WHERE p.title LIKE ? OR p.description LIKE ?';
                         dataParams.push(`%${search}%`, `%${search}%`);
+                        hasWhere = true;
                     }
 
                     if (all === "false") {
-                        if (dataQuery.includes('WHERE')) {
+                        if (hasWhere) {
                             dataQuery += ' AND p.user_id = ?';
                         } else {
                             dataQuery += ' WHERE p.user_id = ?';
