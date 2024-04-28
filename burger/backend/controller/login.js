@@ -19,17 +19,15 @@ router.post('/', (req, res) => {
                     res.status(401).json({message: `Login failed: ${email}`});
                 } else {
                     userId = rows[0].id;
+                    const token = jwt.sign({userId: userId}, "yunchao", {expiresIn: '1y'});
+                    res.json({
+                        status: 'ok',
+                        token: token
+                    });
                 }
-
-                const token = jwt.sign({userId: userId}, "yunchao", {expiresIn: '1y'});
-                res.json({
-                    status: 'ok',
-                    token: token
-                });
             });
         }
     });
-
 });
 
 
