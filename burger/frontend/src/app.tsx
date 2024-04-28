@@ -131,7 +131,7 @@ export const layout: RunTimeLayoutConfig = ({initialState, setInitialState}) => 
  * @doc https://umijs.org/docs/max/request#配置
  */
 export const request = extend({
-  prefix: 'http://127.0.0.1:4321'
+  prefix: 'http://127.0.0.1:29989'
 })
 request.interceptors.request.use((url, options) => {
   // console.log("intercepted!!!")
