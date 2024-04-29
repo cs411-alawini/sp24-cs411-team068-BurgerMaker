@@ -1,5 +1,6 @@
 // import {request} from '@umijs/max';
 import {request} from '@/app'
+import {options} from "axios";
 
 
 export async function getMarketValue(options?: { [key: string]: any }) {
@@ -94,6 +95,23 @@ export async function genPortfolioAdvice(portfolioId: string, options?: { [key: 
   )
 }
 
+export async function createPortfolio(params: any, options?: { [key: string]: any }) {
+  try {
+    const response = await request('/api/portfolio', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      data: params,
+      ...options,
+    });
+    return response;
+  } catch (error) {
+    console.error('Failed to create portfolio', error);
+    throw error;
+  }
+}
 
 
 export async function getTotalCostOfUser(options?: { [key: string]: any }) {

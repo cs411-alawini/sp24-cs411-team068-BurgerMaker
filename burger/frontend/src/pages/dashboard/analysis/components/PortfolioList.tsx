@@ -1,4 +1,4 @@
-import {Card, Modal, Table, Tooltip, Button} from 'antd';
+import { Modal, Input, Button, Card, Table, Tooltip } from 'antd';
 import {useEffect, useState} from 'react';
 import { Pie } from '@ant-design/plots';
 import {
@@ -7,7 +7,8 @@ import {
   fetchPortfolioTrade,
   fetchTrades,
   fetchPortfolioAdvice,
-  genPortfolioAdvice
+  genPortfolioAdvice,
+  createPortfolio
 } from '../service'
 import chatLogo from './chat.jpg';
 
@@ -33,6 +34,10 @@ function PortfolioList() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [advice, setAdvice] = useState('');
   const [activePortfolioId, setActivePortfolioId] = useState(null);
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [newPortfolioName, setNewPortfolioName] = useState('');
+  const [newPortfolioColor, setNewPortfolioColor] = useState('');
+  const [isPinned, setIsPinned] = useState(1); // 默认设置为固定
 
 
   // const userId = "054fb851-41ab-4cd3-9b81-eae67a41690d";
@@ -70,6 +75,7 @@ function PortfolioList() {
   useEffect(() => {
     combineData();
   }, []);
+
   const handleNameClick = async (portfolioId) => {
     const fetchedTrades = await fetchTrades(portfolioId);
     const fetchedHolds = await fetchPortfolioTrade(portfolioId);
@@ -87,7 +93,6 @@ function PortfolioList() {
     // console.log(portfolioId, " holds:", fetchedHolds);
   };
 
-
   const handleBtnClick = async (portfolioId) => {
     try {
       await genPortfolioAdvice(portfolioId); // 生成新的投资建议
@@ -98,7 +103,6 @@ function PortfolioList() {
       setAdvice('Failed to fetch new advice');
     }
   };
-
 
   const closeModal = () => {
     setIsModalVisible(false);
@@ -143,6 +147,7 @@ function PortfolioList() {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
+      sorter: (a, b) => a.name.localeCompare(b.name),  // 使用 localeCompare 进行字符串比较
       render: (text, record) => {
         const textColor = isColorLight(record.color) ? '#000000' : `#${record.color.toString(16).padStart(6, '0')}`;
         return (
@@ -169,12 +174,14 @@ function PortfolioList() {
       title: 'Total Cost',
       dataIndex: 'Total_Cost',
       key: 'total_cost',
+      sorter: (a, b) => a.Total_Cost - b.Total_Cost,  // 数字排序
       render: cost => cost !== null && cost !== undefined ? cost.toLocaleString() : 'N/A'
     },
     {
       title: 'Created on',
       dataIndex: 'create_time',
       key: 'create_time',
+      sorter: (a, b) => new Date(a.create_time) - new Date(b.create_time),
       render: time => new Date(time).toLocaleDateString()
     },
   ];
@@ -196,13 +203,70 @@ function PortfolioList() {
     interactions: [{ type: 'element-active' }],
   };
 
+  const showAddPortfolioModal = () => {
+    setIsAddModalVisible(true);
+  };
+
+  const handleAddPortfolio = async () => {
+    const color = newPortfolioColor ? parseInt(newPortfolioColor, 16) : Math.floor(Math.random() * 16777215);
+    const portfolioData = {
+      name: newPortfolioName,
+      color,
+      isPinned
+    };
+
+    try {
+      await createPortfolio(portfolioData);
+      // Assuming the response object is correctly formatted and successful
+      alert('Portfolio created successfully!');
+      setIsAddModalVisible(false); // Close the modal on success
+      combineData(); // Refresh the list of portfolios
+    } catch (error) {
+      // umi-request might throw an error which contains a response object
+      console.error('Error creating new portfolio:', error);
+      if (error.response) {
+        // Assuming error response is in JSON format and has a message field
+        error.response.clone().json().then((jsonData) => {
+          alert(`Failed to create portfolio: ${jsonData.message || 'Unknown error'}`);
+        });
+      } else {
+        // Network error or cannot parse response
+        alert(`Failed to create portfolio: ${error.message}`);
+      }
+    }
+  };
+
+
+  const handleCancel = () => {
+    setIsAddModalVisible(false);
+  };
+
   return (
-    <Card title="Portfolio List" bordered={false}>
+    <Card title={
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span>Portfolio List</span>
+        <Button onClick={showAddPortfolioModal} style={{
+          padding: '10px 12px',
+          fontSize: '13px',
+          // cursor: 'pointer',
+          background: '#1d8ae1',
+          color: 'white',
+          fontWeight: 'bold',
+          borderRadius: '8px',
+          border: 'none',
+          display: 'flex',         // 确保使用 flex 布局
+          justifyContent: 'center', // 水平居中
+          alignItems: 'center',     // 垂直居中
+        }}>
+          Add New Portfolio
+        </Button>
+      </div>
+    } bordered={false}>
       <Table
         dataSource={combinedPortfolios}
         columns={columns}
         rowKey="serialId"
-        pagination={{ pageSize: 5 }}
+        pagination={{pageSize: 5}}
       />
       <Modal
         title="Trade and Holdings Details"
@@ -252,6 +316,33 @@ function PortfolioList() {
             {advice}
           </div>
         </div>
+      </Modal>
+      <Modal
+        title="Add New Portfolio"
+        visible={isAddModalVisible}
+        onOk={handleAddPortfolio}
+        onCancel={handleCancel}
+        footer={[
+          <Button key="back" onClick={handleCancel}>
+            Cancel
+          </Button>,
+          <Button key="submit" type="primary" onClick={handleAddPortfolio}>
+            Add Portfolio
+          </Button>,
+        ]}
+      >
+        <Input
+          placeholder="Enter portfolio name"
+          value={newPortfolioName}
+          onChange={e => setNewPortfolioName(e.target.value)}
+          style={{ marginBottom: '10px' }}
+        />
+        <Input
+          placeholder="Enter hex color (optional)"
+          value={newPortfolioColor}
+          onChange={e => setNewPortfolioColor(e.target.value)}
+          style={{ marginBottom: '10px' }}
+        />
       </Modal>
     </Card>
   );

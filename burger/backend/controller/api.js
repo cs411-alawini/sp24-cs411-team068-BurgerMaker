@@ -508,7 +508,46 @@ router.post('/post/publish', async (req, res) => {
             });
         }
     });
+})
+
+
+// 添加新的portfolio
+router.post('/portfolio', async (req, res) => {
+    const { name, color, isPinned } = req.body;  // 从请求体中获取portfolio名称、颜色和是否固定
+    console.log(req.body)
+    const userId = req.user;  // 假设req.user是已经通过认证中间件设置的用户ID
+
+    if (!name || color === undefined || isPinned === undefined) {
+        return res.status(400).json({ message: 'Portfolio name, color, and pin status are required' });
+    }
+
+    db.getConnection((err, connection) => {
+        if (err) {
+            return res.status(500).json({ message: 'Internal server error getting database connection' });
+        }
+
+        // 插入新的portfolio到数据库
+        const query = `
+            INSERT INTO Portfolio (id, name, color, is_pinned, user_id, create_time)
+            VALUES (uuid(), ?, ?, ?, ?, now());
+        `;
+
+        connection.query(query, [name, color, isPinned, userId], (err, results) => {
+            connection.release();  // 总是释放连接回连接池
+
+            if (err) {
+                return res.status(500).json({ message: 'Error inserting new portfolio into the database' });
+            }
+
+            res.status(201).json({
+                message: 'Portfolio created successfully'
+            });
+        });
+    });
 });
+
+
+
 
 
 router.get('/list_real2', async (req, res) => {
