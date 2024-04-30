@@ -109,16 +109,16 @@ router.get('/assets', async (req, res) => {
     const search_text = req.query.search_text || '';
     const rankers = req.query.rankers.split(',') || [];
     const extractLastDigits = filename => (filename.match(/\d+/g)?.slice(-1)[0]?.slice(-6) || null);
-
+    const search_query = search_text.length ? `WHERE name LIKE '%${search_text}%'` : '';
     const q = `
         SELECT * FROM Asset
-        WHERE name LIKE ?
+        ${search_query} 
     `; 
     db.getConnection((err, connection) => {
         if (err) {
             return res.status(500).json({message: 'Internal server error getting database connection'});
         }
-        connection.query(q, [`%${search_text}%`], async (err, results) => {
+        connection.query(q, [], async (err, results) => {
             connection.release(); // Release the connection back to the pool
             if (err) {
                 return res.status(500).json({message: 'Error querying database'});
