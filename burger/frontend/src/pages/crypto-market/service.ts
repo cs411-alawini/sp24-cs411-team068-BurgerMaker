@@ -39,19 +39,24 @@ export async function getPortfolioData(userId: string, options?: { [key: string]
 
 
 export async function trade(asset_id: string, portfolio_name: string, quantity: number, price: number, options?: { [key: string]: any }): Promise<{ data: any }> {
-  return request('/api/assets/trade', {
-    method: 'POST',
-    data: {
-      asset_id,
-      portfolio_name,
-      quantity,
-      price,
-    },
-    ...(options || {}),
-  }).catch((error) => {
-    // console.error('Trade failed:', error.message);
-    throw error;
-  });
+  try {
+    const response = await request('/api/assets/trade', {
+      method: 'POST',
+      data: {
+        asset_id,
+        portfolio_name,
+        quantity,
+        price,
+      },
+      ...(options || {}),
+    });
+    if (response.status !== 200) {
+      throw new Error(response.message);
+    }
+    return { data: response.body };
+  } catch (error) {
+    throw error; // Rethrow to allow the caller to handle it
+  }
 }
 
 export async function getAssetsTrending(asset_id: string, options?: { [key: string]: any }): Promise<{ data: AssetItemDataType[] }> {

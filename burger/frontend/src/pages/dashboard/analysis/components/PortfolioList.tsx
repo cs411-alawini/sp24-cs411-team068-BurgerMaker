@@ -1,4 +1,4 @@
-import { Modal, Input, Button, Card, Table, Tooltip, message } from 'antd';
+import { Modal, Input, Button, Card, Table, Tooltip, Divider, message } from 'antd';
 import {useEffect, useState} from 'react';
 import { Pie } from '@ant-design/plots';
 import {
@@ -86,18 +86,17 @@ function PortfolioList() {
     }
     let fetchedAdvice = await fetchPortfolioAdvice(portfolioId);
     setActivePortfolioId(portfolioId);
-    // console.log(fetchedAdvice);
-    if (fetchedAdvice.length == 0){
-      try{
-        await genPortfolioAdvice(portfolioId);
-      } catch (error) {
-        console.error('Error fetching new advice:', error);
-        messageApi.error('Failed to fetch new advice');
-      }
-      fetchedAdvice = await fetchPortfolioAdvice(portfolioId);
-    }
+    setAdvice(fetchedAdvice.length != 0 ? fetchedAdvice[0].content : 'Click to generate AI-powered trading advice.');
+    // if (fetchedAdvice.length == 0){
+    //   try{
+    //     await genPortfolioAdvice(portfolioId);
+    //   } catch (error) {
+    //     console.error('Error fetching new advice:', error);
+    //     messageApi.error('Failed to fetch new advice');
+    //   }
+    //   fetchedAdvice = await fetchPortfolioAdvice(portfolioId);
+    // }
     setIsModalVisible(true);
-    setAdvice(fetchedAdvice[0].content);
     setTrades(fetchedTrades);
     setHolds(fetchedHolds);
   };
@@ -278,19 +277,19 @@ function PortfolioList() {
         pagination={{pageSize: 5}}
       />
       <Modal
-        title="Trade and Holdings Details"
+        title={<div style={{ fontSize: '24px' }}>Trade and Holdings Details</div>}
         visible={isModalVisible}
         onCancel={closeModal}
         width={800}
         footer={null}
         key={Date.now()} // ensure the modal is re-rendered when the state changes
       >
-        <div style={{display: 'flex', justifyContent: 'space-between', overflow: 'hidden'}}>
+        <div style={{display: 'flex', justifyContent: 'space-between', overflow: 'hidden', marginTop: '15px', marginBottom: '-40px'}}>
           <div style={{flex: 1, marginRight: '20px'}}>
             <Table
               dataSource={trades}
               columns={tradeColumns}
-              pagination={{pageSize: 4}}  // display 4 trades per page
+              pagination={{position: ['bottomLeft'], pageSize: 4}}  // display 4 trades per page
               rowKey="id"
             />
           </div>
@@ -298,7 +297,8 @@ function PortfolioList() {
             <Pie {...config} />
           </div>
         </div>
-        <div style={{flex: 1, display: 'flex'}}>
+        <Divider>AI Trading Advice</Divider>
+        <div style={{flex: 1, display: 'flex', marginTop: '15px', marginBottom: '15px'}}>
           <div style={{
             display: 'flex',
             flexDirection: 'column',
@@ -307,23 +307,12 @@ function PortfolioList() {
             width: '100px'
           }}>
             <img src={chatLogo} alt="Investment Advice" style={{width: '100%', height: 'auto', marginBottom: '2px'}}/>
-            {/* <button onClick={() => handleBtnClick(activePortfolioId)}
-                    style={{
-                      padding: '8px 16px',
-                      fontSize: '16px',
-                      cursor: 'pointer',
-                      background: "#006acb",
-                      color: "white",
-                      fontWeight: 'bold',
-                      borderRadius: "8px",
-                      border: 'none'
-                    }}>
-              Generate Advice
-            </button> */}
-            {/* Text Label */}
-            <div style={{fontSize: '13px', fontWeight: 'bold', textAlign: 'center', marginBottom: '10px'}}>
-              AI-powered Trading Advice
-            </div>
+            <Button type="default" 
+                    size={9}
+                    onClick={() => handleBtnClick(activePortfolioId)}
+            >
+              Get Advice
+            </Button>
           </div>
           <div style={{flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '5px', overflow: 'auto'}}>
             {advice}

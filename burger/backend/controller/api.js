@@ -174,11 +174,11 @@ router.post('/assets/trade', async (req, res) => {
     const user_id = req.user;
     console.log(req.body)
     if (!asset_id || !portfolio_name || !quantity || !price) {
-        return res.status(400).json({message: 'Missing required fields'});
+        return res.status(400).json({status: 400, message: 'Missing required fields'});
     }
     db.getConnection((err, connection) => {
         if (err) {
-            return res.status(500).json({message: 'Internal server error getting database connection'});
+            return res.status(500).json({status: 500, message: 'Internal server error getting database connection'});
         }
         const q = `
             CALL ExecuteTrade(?, (SELECT id FROM Portfolio WHERE user_id = ? AND name = ?), ?, ?, ?);
@@ -186,13 +186,17 @@ router.post('/assets/trade', async (req, res) => {
         connection.query(q, [user_id, user_id, portfolio_name, asset_id, quantity, price], (err, results) => {
             connection.release(); // Release the connection back to the pool
             if (err) {
+                console.log(err)
                 if (err.code === 'ER_WARN_DATA_OUT_OF_RANGE') {
-                    return res.status(500).json({message: 'Insufficient balance'});
+                    return res.status(201).json({status: 400, message: 'Insufficient balance'});
+                }
+                else if (err.code === 'ER_SIGNAL_EXCEPTION') {
+                    return res.status(201).json({status: 400, message: 'Insufficient assets to sell'});
                 } else {
-                    return res.status(500).json({message: 'Error executing trade'});
+                    return res.status(500).json({status: 500, message: err.sqlMessage});
                 }
             }
-            res.json({message: 'Trade executed successfully'});
+            res.json({status: 200, message: 'Trade executed successfully'});
         })
     })
 });
