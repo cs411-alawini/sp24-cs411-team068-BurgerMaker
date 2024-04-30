@@ -109,11 +109,11 @@ const CardList = () => {
     if  (selectedCrypto === null) {
       messageApi.error('Please select a crypto');
       return;
-    } else if (selectedPortfolio === null) {
-      messageApi.error('Please select a portfolio');
-      return;
     } else if (amount === '') {
       messageApi.error('Please enter an amount');
+      return;
+    } else if (selectedPortfolio === null) {
+      messageApi.error('Please select a portfolio');
       return;
     } else if (amount <= 0) {
       messageApi.error('Please enter a valid amount');

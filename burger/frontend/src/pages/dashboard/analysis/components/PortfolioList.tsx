@@ -79,6 +79,8 @@ function PortfolioList() {
   const handleNameClick = async (portfolioId) => {
     const fetchedTrades = await fetchTrades(portfolioId);
     const fetchedHolds = await fetchPortfolioTrade(portfolioId);
+    setTrades(fetchedTrades);
+    setHolds(fetchedHolds);
     if (fetchedTrades.length === 0 && fetchedHolds.length === 0) { 
       setAdvice('No trading history available for this portfolio.');
       setIsModalVisible(true);
@@ -97,11 +99,13 @@ function PortfolioList() {
     //   fetchedAdvice = await fetchPortfolioAdvice(portfolioId);
     // }
     setIsModalVisible(true);
-    setTrades(fetchedTrades);
-    setHolds(fetchedHolds);
   };
 
   const handleBtnClick = async (portfolioId) => {
+    if (trades.length === 0 && holds.length === 0) { 
+      messageApi.error('No trading history available for this portfolio.');
+      return;
+    }
     try {
       await genPortfolioAdvice(portfolioId); // 生成新的投资建议
       const fetchedAdvice = await fetchPortfolioAdvice(portfolioId); // 获取最新的投资建议

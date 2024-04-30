@@ -188,10 +188,10 @@ router.post('/assets/trade', async (req, res) => {
             if (err) {
                 console.log(err)
                 if (err.code === 'ER_WARN_DATA_OUT_OF_RANGE') {
-                    return res.status(201).json({status: 400, message: 'Insufficient balance'});
+                    return res.status(201).json({status: 400, message: err.sqlMessage});
                 }
                 else if (err.code === 'ER_SIGNAL_EXCEPTION') {
-                    return res.status(201).json({status: 400, message: 'Insufficient assets to sell'});
+                    return res.status(201).json({status: 400, message: err.sqlMessage});
                 } else {
                     return res.status(500).json({status: 500, message: err.sqlMessage});
                 }
