@@ -598,7 +598,7 @@ router.get('/list_real2', async (req, res) => {
                     return res.status(500).json({message: 'Error querying total count'});
                 } else {
                     const totalItems = countResults[0].total;
-
+                    
                     // Now handle the main data query with pagination
                     // let dataQuery = `
                     //     SELECT p.id, p.title, p.description, p.create_time, p.update_time, p.thumbs_up_num, p.content,
@@ -648,7 +648,7 @@ router.get('/list_real2', async (req, res) => {
                     const dataParams = [];
                     dataParams.push(`${user_id}`);
 
-                    const hasWhere = false;
+                    let hasWhere = false;
 
                     if (search) {
                         dataQuery += ' WHERE p.title LIKE ? OR p.description LIKE ?';
