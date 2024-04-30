@@ -19,7 +19,7 @@ const ArticleListContent: React.FC<ArticleListContentProps> = ({
     <div>
       <div className={styles.description}>{content}</div>
       <div className={styles.extra}>
-        <a href={"https://ant.design"}>{owner}</a>
+        <label>{owner}</label>
         <em>{dayjs(updatedAt).format('YYYY-MM-DD HH:mm')}</em>
       </div>
     </div>
