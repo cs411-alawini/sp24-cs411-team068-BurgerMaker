@@ -108,6 +108,7 @@ router.get('/assets', async (req, res) => {
     const offset = parseInt(req.query.offset) || 0;
     const search_text = req.query.search_text || '';
     const rankers = req.query.rankers.split(',') || [];
+    const extractLastDigits = filename => (filename.match(/\d+/g)?.slice(-1)[0]?.slice(-6) || null);
 
     const q = `
         SELECT * FROM Asset
@@ -136,8 +137,12 @@ router.get('/assets', async (req, res) => {
                 asset.logo = info.logo;
                 // const trends = await getHistoryData(asset.asset_id, new Date(Date.now() - 2*24 * 60 * 60 * 1000).toISOString(), new Date().toISOString(), 2);
                 // const change = (trends[0].rate_open - trends[1].rate_close) / trends[1].rate_close;
-
-                asset.change = randomInt(-1500, 1500) / 10000;
+                const num = extractLastDigits(info.logo)
+                const indicator = (num % 2) * 2 - 1;
+                asset.change = indicator * num / 20000;
+                if (info.asset_name == 'Tether') {
+                    asset.change = 0;
+                }
             });
 
             // Apply filters [count, offset, rankers]

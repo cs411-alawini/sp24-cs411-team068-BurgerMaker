@@ -111,9 +111,6 @@ const Login: React.FC = () => {
           defaultMessage: '登录成功！',
         });
         message.success(defaultLoginSuccessMessage);
-        // await fetchUserInfo();
-        // const urlParams = new URL(window.location.href).searchParams;
-        // console.log(urlParams)
         window.location.href = '/dashboard';
         return;
       }

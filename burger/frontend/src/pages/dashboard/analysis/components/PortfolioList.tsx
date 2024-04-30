@@ -1,4 +1,4 @@
-import { Modal, Input, Button, Card, Table, Tooltip } from 'antd';
+import { Modal, Input, Button, Card, Table, Tooltip, message } from 'antd';
 import {useEffect, useState} from 'react';
 import { Pie } from '@ant-design/plots';
 import {
@@ -38,7 +38,7 @@ function PortfolioList() {
   const [newPortfolioName, setNewPortfolioName] = useState('');
   const [newPortfolioColor, setNewPortfolioColor] = useState('');
   const [isPinned, setIsPinned] = useState(1); // 默认设置为固定
-
+  const [messageApi, contextHolder] = message.useMessage();
 
   // const userId = "054fb851-41ab-4cd3-9b81-eae67a41690d";
 
@@ -79,28 +79,37 @@ function PortfolioList() {
   const handleNameClick = async (portfolioId) => {
     const fetchedTrades = await fetchTrades(portfolioId);
     const fetchedHolds = await fetchPortfolioTrade(portfolioId);
-    const fetchedAdvice = await fetchPortfolioAdvice(portfolioId);
+    if (fetchedTrades.length === 0 && fetchedHolds.length === 0) { 
+      setAdvice('No trading history available for this portfolio.');
+      setIsModalVisible(true);
+      return;
+    }
+    let fetchedAdvice = await fetchPortfolioAdvice(portfolioId);
     setActivePortfolioId(portfolioId);
     // console.log(fetchedAdvice);
-    setAdvice(fetchedAdvice.length > 0 ? fetchedAdvice[0].content : 'No advice available');
-
+    if (fetchedAdvice.length == 0){
+      try{
+        await genPortfolioAdvice(portfolioId);
+      } catch (error) {
+        console.error('Error fetching new advice:', error);
+        messageApi.error('Failed to fetch new advice');
+      }
+      fetchedAdvice = await fetchPortfolioAdvice(portfolioId);
+    }
+    setIsModalVisible(true);
+    setAdvice(fetchedAdvice[0].content);
     setTrades(fetchedTrades);
     setHolds(fetchedHolds);
-
-    setIsModalVisible(true);
-
-    // console.log(portfolioId, ' trade:', fetchedTrades);
-    // console.log(portfolioId, " holds:", fetchedHolds);
   };
 
   const handleBtnClick = async (portfolioId) => {
     try {
       await genPortfolioAdvice(portfolioId); // 生成新的投资建议
       const fetchedAdvice = await fetchPortfolioAdvice(portfolioId); // 获取最新的投资建议
-      setAdvice(fetchedAdvice.length > 0 ? fetchedAdvice[0].content : 'No advice available.');
+      setAdvice(fetchedAdvice.length > 0 ? fetchedAdvice[0].content : 'Click to generate AI-powered trading advice.');
     } catch (error) {
       console.error('Error fetching new advice:', error);
-      setAdvice('Failed to fetch new advice');
+      messageApi.error('Failed to fetch new advice');
     }
   };
 
@@ -297,8 +306,8 @@ function PortfolioList() {
             alignItems: 'center',
             width: '100px'
           }}>
-            <img src={chatLogo} alt="Investment Advice" style={{width: '100%', height: 'auto', marginBottom: '10px'}}/>
-            <button onClick={() => handleBtnClick(activePortfolioId)}
+            <img src={chatLogo} alt="Investment Advice" style={{width: '100%', height: 'auto', marginBottom: '2px'}}/>
+            {/* <button onClick={() => handleBtnClick(activePortfolioId)}
                     style={{
                       padding: '8px 16px',
                       fontSize: '16px',
@@ -310,7 +319,11 @@ function PortfolioList() {
                       border: 'none'
                     }}>
               Generate Advice
-            </button>
+            </button> */}
+            {/* Text Label */}
+            <div style={{fontSize: '13px', fontWeight: 'bold', textAlign: 'center', marginBottom: '10px'}}>
+              AI-powered Trading Advice
+            </div>
           </div>
           <div style={{flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '5px', overflow: 'auto'}}>
             {advice}
