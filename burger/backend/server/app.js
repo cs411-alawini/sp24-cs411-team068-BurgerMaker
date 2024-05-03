@@ -15,26 +15,24 @@ app.use(xssFilter())
 const cors = require('cors')
 app.use(cors());
 
-// Session
-const redis = require('redis');
-const session = require('express-session');
-const RedisStore = require('connect-redis')(session);
-const redisClient = redis.createClient();
+const jwt = require('jsonwebtoken');
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+    // console.log(req.headers)
+    // console.log(token)
 
-var sess = {
-    secret: '3AJ9IzEw56GOY4FeeKIr3tA4FTkpYkSf16',
-    store: new RedisStore({ client: redisClient }),
-    cookie: {maxAge: 60000},
-    saveUninitialized: false,
-    resave: false
+    if (token == null) return res.sendStatus(401); // 如果没有 token，则返回 401 未授权
+
+    jwt.verify(token, "yunchao", (err, user) => {
+        if (err) return res.sendStatus(403); // 如果 token 不正确或已过期，返回 403 禁止访问
+        req.user = user.userId;
+        next(); // token 正确，继续处理请求
+    });
 };
 
-if (app.get('env') === 'production') {
-    app.set('trust proxy', 1) // trust first proxy
-    sess.cookie.secure = true // serve secure cookies
-}
+app.use('/api', authenticateToken);
 
-app.use(session(sess));
 
 // Static files
 app.use('/static', express.static('static'));
@@ -45,12 +43,14 @@ var exphbs = require('express-handlebars');
 app.engine('.html', exphbs({extname: '.html'}));
 app.set('view engine', '.html');
 
-// Guest
-const guestRouter = require('../controller/guest');
-app.use('/', guestRouter);
+// Test API
+const testRouter = require('../controller/test');
+app.use('/test', testRouter);
 
-// Logged in user
-const myRouter = require('../controller/my');
-app.use('/my', myRouter);
+// Implement API
+const loginRouter = require('../controller/login')
+app.use('/login', loginRouter)
+const apiRouter = require('../controller/api');
+app.use('/api', apiRouter);
 
 module.exports = app;

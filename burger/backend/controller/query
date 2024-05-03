@@ -1,0 +1,72 @@
+SELECT 
+[0]                             p.id, 
+[0]                             p.title, 
+[0]                             p.description, 
+[0]                             p.create_time, 
+[0]                             p.update_time, 
+[0]                             p.thumbs_up_num, 
+[0]                             p.content,
+[0]                             u.name AS owner, 
+[0]                             u.id AS user_id, 
+[0]                             count(spr.star) as star, 
+[0]                             COALESCE(starredInfo.starCntByMe, 0) as starCntByMe
+[0]                         FROM 
+[0]                             Post p
+[0]                         LEFT JOIN 
+[0]                             User u ON p.user_id = u.id
+[0]                         LEFT JOIN (
+[0]                             SELECT 
+[0]                                 post_id, 
+[0]                                 count(star) as starCntByMe
+[0]                             FROM 
+[0]                                 StarPostRecord
+[0]                             WHERE 
+[0]                                 user_id = '00310be2-843a-4a61-a809-38a934fdc972'
+[0]                             GROUP BY 
+[0]                                 post_id
+[0]                         ) AS starredInfo ON starredInfo.post_id = p.id
+[0]                         LEFT JOIN 
+[0]                             StarPostRecord spr ON spr.post_id = p.id and spr.star = 1
+[0]                              group by p.id, starredInfo.starCntByMe ORDER BY p.create_time DESC LIMIT ? OFFSET ? [ '04b6086e-97a3-4e2c-b36c-27f260aa1f16', 10, 0 ]
+
+SELECT 
+    p.id,
+    p.title,
+    COUNT(spr.star) AS star, 
+    COALESCE(starredInfo.starCntByMe, 0) AS starCntByMe
+FROM 
+    Post p
+LEFT JOIN 
+    User u ON p.user_id = u.id
+LEFT JOIN (
+    SELECT 
+        post_id, 
+        COUNT(star) AS starCntByMe
+    FROM 
+        StarPostRecord
+    WHERE 
+        user_id = '04b6086e-97a3-4e2c-b36c-27f260aa1f16'
+    GROUP BY 
+        post_id
+) AS starredInfo ON starredInfo.post_id = p.id
+LEFT JOIN 
+    StarPostRecord spr ON spr.post_id = p.id AND spr.star = 1
+GROUP BY 
+    p.id, starredInfo.starCntByMe 
+ORDER BY 
+    p.create_time DESC 
+LIMIT 10 OFFSET 0 ;
+
+
+
+SELECT 
+    post_id, 
+    count(star) as starCntByMe
+FROM 
+    StarPostRecord
+WHERE 
+    user_id = '04b6086e-97a3-4e2c-b36c-27f260aa1f16'
+    and post_id = '0027e378-0363-11ef-99e5-42010a400004'
+
+
+INSERT INTO StarPostRecord (user_id, post_id, star) VALUES ('04b6086e-97a3-4e2c-b36c-27f260aa1f16', '0027e378-0363-11ef-99e5-42010a400004', true) ON DUPLICATE KEY UPDATE star = NOT star
